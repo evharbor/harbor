@@ -1,0 +1,5 @@
+*.so
+*.a
+*.exe
+/upload/*
+/config/config.json

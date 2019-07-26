@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {% block head_extends %}{% endblock %}
+{% endblock %}
+
+{% block boby %}
+    <div class="container col-xs-2">
+        <ul class="nav nav-tabs nav-stacked">
+            <li role="presentation" class="active menu-list">
+                <li class="nav-list-toggle" data-toggle="collapse" data-target="#oos-nav-list-group">
+                    <h5><span class="glyphicon glyphicon-list"></span>  对象存储<span class="glyphicon glyphicon-menu-down"></span></h5>
+                </li>
+                <ul class="bg-info nav nav-pills nav-stacked collapse in" id="oos-nav-list-group">
+                    <li class="bg-info"><a href="/" >存储桶</a></li>
+                    <li class="bg-info"><a href="">API使用说明</a></li>
+                </ul>
+            </li>
+            <li role="presentation" class="menu-list">
+                <li class="nav-list-toggle" data-toggle="collapse" data-target="#cloud-nav-list-group">
+                    <h5><span class="glyphicon glyphicon-list"></span>  云主机<span class="glyphicon glyphicon-menu-down"></span></h5>
+                </li>
+                <ul class="bg-info nav nav-pills nav-stacked collapse in" id="cloud-nav-list-group">
+                    <li><a href="">云主机列表</a></li>
+                    <li><a href="">创建云主机</a></li>
+                    <li><a href="">云主机使用说明</a></li>
+                </ul>
+            </li>
+            <li role="presentation" class="menu-list">
+                <li class="nav-list-toggle" data-toggle="collapse" data-target="#vpn-nav-list-group">
+                    <h5><span class="glyphicon glyphicon-list"></span>  VPN<span class="glyphicon glyphicon-menu-down"></span></h5>
+                </li>
+                <ul class="bg-info nav nav-pills nav-stacked collapse in" id="vpn-nav-list-group">
+                    <li><a href="">安装使用说明</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div class="col-xs-10" id="content-display-div">
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="/static/sweetalert2/dist/sweetalert2.all.min.js"></script>
+{#    <!-- Include a polyfill for ES6 Promises (optional) for IE11, UC Browser and Android browser support -->#}
+    <script type="text/javascript" src="/static/promise-polyfill/dist/polyfill.js"></script>
+    {% block script_extends %}{% endblock %}
+{% endblock %}

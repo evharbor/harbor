@@ -1,0 +1,151 @@
+{{define "users/register.tmpl"}} 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap-3.3.7/css/bootstrap.min.css">
+	
+	<title>用户注册</title>
+    <style>
+        html, body{
+            height: 100%;
+        }
+
+        .page-content {
+            min-height: 100%;
+            height: auto;
+            padding-top: 60px;
+            margin-bottom: -60px;
+            padding-bottom: 60px;
+        }
+
+        .page-footer{
+            height: 60px;
+            opacity: 0.8;
+            background-color: #ececec;
+        }
+        .page-content-display{
+            margin-bottom: 47%;
+        }
+    </style>
+</head>
+<body>
+    <div  class="page-content container-fluid">
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="https://www.cstcloud.cn">
+                        中国科技云
+                    </a>
+                    <a class="navbar-brand" href="/">
+                        EVHarbor
+                    </a>
+                </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                               aria-expanded="false">帮助 <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+    
+    
+                                <li><a href="/apidocs/" target="view_window" >API文档</a></li>
+                                <li><a href="/docs/">文档</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <ul class="nav navbar-nav">
+                                
+                                    <li><a href="/users/login/">登录</a></li>
+                                    <li><a href="/users/register/">注册</a></li>
+                                
+                            </ul>
+                        </li>
+                    </ul>
+                </div><!-- /.navbar-collapse -->
+            </div><!-- /.container-fluid -->
+        </nav>
+        <div class="page-content-display">
+            
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-offset-4 col-sm-4">
+                
+                <div class="panel panel-default panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">用户注册</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form id="form-add-user" name="form-add" method="POST" action="/user" enctype="multipart/form-data">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="08MxeMLfv0wjG0FyhqsGO2yyowTOHPmIF9B91fzLuo7p08RkzdDrk6LoZ8BpMSKn">
+                            
+                                
+                                    <label for="id_username">用户名(邮箱):</label><input type="email" name="username" class="form-control" placeholder="请输入邮箱作为用户名" maxlength="100" required id="id_username">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_password">密码:</label><input type="password" name="password" class="form-control" placeholder="请输入一个8-20位的密码" maxlength="20" minlength="8" required id="id_password">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_confirm_password">确认密码:</label><input type="password" name="confirm_password" class="form-control" placeholder="请输入确认密码" maxlength="20" minlength="8" required id="id_confirm_password">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_last_name">姓氏:</label><input type="text" name="last_name" class="form-control" placeholder="请如实填写" maxlength="30" required id="id_last_name">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_first_name">名字:</label><input type="text" name="first_name" class="form-control" placeholder="请如实填写" maxlength="30" required id="id_first_name">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_telephone">电话:</label><input type="text" name="telephone" class="form-control" placeholder="请如实填写" maxlength="11" required id="id_telephone">
+                                    <p class="text-danger"></p>
+                                
+                            
+                                
+                                    <label for="id_company">公司/单位:</label><input type="text" name="company" class="form-control" placeholder="请如实填写" maxlength="255" required id="id_company">
+                                    <p class="text-danger"></p>
+                                
+                            
+                            <p id="tip_text" class="text-danger pull-left"></p>
+                            <div class="clearfix"></div>
+                            <button type="submit" class="btn btn-primary pull-left">注册</button>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <footer class="page-footer container-fluid">
+        <div class="text-center">
+            <p>1996-2019 <a href="http://www.cnic.cas.cn/">中国科学院计算机网络信息中心</a> 版权所有 京ICP备09112257号-94</p>
+            <p>Copyright © 1996-2019 Computer Network Information Center, Chinese Academy of Sciences. All Rights Reserved.</p>
+        </div>
+    </footer>
+</body>
+    <script type="text/javascript" src="/static/jquery2.2.4/dist/jquery-2.2.4.min.js"></script>   
+    <script type="text/javascript" src="/static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/common.js"></script>
+	<script type="text/javascript" src="/static/js/add.js"></script>
+</html>
+{{end}}

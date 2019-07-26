@@ -1,0 +1,611 @@
+basePath: /
+definitions:
+  controllers.BaseJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+    type: object
+  controllers.DirCreate400JSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      existing:
+        type: boolean
+    type: object
+  controllers.DirCreateJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      dir:
+        $ref: '#/definitions/models.HarborObject'
+        type: object
+    type: object
+  controllers.DirListJSON:
+    properties:
+      bucket_name:
+        type: string
+      code:
+        type: integer
+      code_text:
+        type: string
+      count:
+        type: integer
+      dir_path:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/models.HarborObject'
+        type: array
+      next:
+        type: string
+      page:
+        $ref: '#/definitions/controllers.PageNumberInfo'
+        type: object
+      previous:
+        type: string
+    type: object
+  controllers.PageNumberInfo:
+    properties:
+      current:
+        type: integer
+      final:
+        type: integer
+    type: object
+  controllers.PostBucketForm:
+    properties:
+      name:
+        type: string
+    type: object
+  controllers.UserListJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      count:
+        type: integer
+      next:
+        type: string
+      privous:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/models.UserProfile'
+        type: array
+    type: object
+  middlewares.JWTLoginForm:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  middlewares.JWTRefreshForm:
+    properties:
+      token:
+        type: string
+    type: object
+  models.HarborObject:
+    properties:
+      dlc:
+        description: 该文件的下载次数，目录时dlc为0
+        type: integer
+      fod:
+        description: True==文件，False==目录
+        type: boolean
+      id:
+        type: integer
+      na:
+        description: 全路径文件名或目录名
+        type: string
+      name:
+        description: 文件名或目录名
+        type: string
+      sh:
+        description: 为True，则文件可共享，为False，则文件不能共享
+        type: boolean
+      si:
+        description: 文件大小, 字节数
+        type: integer
+      ult:
+        description: 文件的上传时间，或目录的创建时间
+        type: string
+      upt:
+        description: 修改时间
+        type: string
+    type: object
+  models.UserProfile:
+    properties:
+      company:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      password:
+        type: string
+      telephone:
+        type: string
+      username:
+        type: string
+    type: object
+host: 127.0.0.1:9000
+info:
+  contact:
+    email: helpdesk@cnic.cn
+    name: API Support
+    url: http://obs.casearth.cn/
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://obs.casearth.cn/
+  title: EVHarbor API
+  version: "1.0"
+paths:
+  /api/v1/buckets/:
+    get:
+      consumes:
+      - application/json
+      description: 获取存储桶列表
+      parameters:
+      - description: The initial index from which to return the results
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Number of results to return per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - Bucket 存储桶
+    post:
+      consumes:
+      - application/json
+      description: 创建存储桶
+      parameters:
+      - description: bucket name
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.PostBucketForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - Bucket 存储桶
+  /api/v1/dir/{bucketname}/{dirpath}:
+    get:
+      consumes:
+      - application/json
+      description: 获取目录下目录和对象列表
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: dirpath
+        in: path
+        name: dirpath
+        type: string
+      - description: The initial index from which to return the results
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Number of results to return per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.DirListJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - Dir 目录
+    post:
+      consumes:
+      - application/json
+      description: 创建目录
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: dirpath
+        in: path
+        name: dirpath
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.DirCreateJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.DirCreate400JSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - Dir 目录
+  /api/v1/jwt-token-refresh/:
+    post:
+      consumes:
+      - application/json
+      - application/x-www-form-urlencoded
+      description: jwt refresh handler
+      parameters:
+      - description: jwt
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/middlewares.JWTRefreshForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - jwt
+  /api/v1/jwt-token/:
+    post:
+      consumes:
+      - application/json
+      description: jwt login handler
+      parameters:
+      - description: auth info
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/middlewares.JWTLoginForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - jwt
+  /api/v1/obj/{bucketname}/{objpath}:
+    get:
+      consumes:
+      - application/json
+      description: 通过文件对象绝对路径,下载文件对象,可通过参数获取文件对象详细信息，或者自定义读取对象数据块
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: objpath
+        in: path
+        name: objpath
+        required: true
+        type: string
+      - description: The byte offset of object to read
+        in: query
+        name: offset
+        type: integer
+      - description: Byte size to read
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserListJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - object对象
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传对象分片
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: objpath
+        in: path
+        name: objpath
+        required: true
+        type: string
+      - description: chunk
+        in: formData
+        name: chunk
+        required: true
+        type: file
+      - description: chunk_offset
+        in: formData
+        name: chunk_offset
+        required: true
+        type: integer
+      - description: chunk_size
+        in: formData
+        name: chunk_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - object对象
+  /api/v1/users/:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户列表页
+      parameters:
+      - description: The initial index from which to return the results
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Number of results to return per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserListJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - user 用户
+    post:
+      consumes:
+      - application/json
+      description: 创建用户
+      parameters:
+      - description: 用户名
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserProfile'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      tags:
+      - user 用户
+  /user/register/:
+    post:
+      consumes:
+      - application/json
+      description: 注册用户
+      parameters:
+      - description: Some ID
+        in: path
+        name: some_id
+        required: true
+        type: string
+      - description: The initial index from which to return the results
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Number of results to return per page
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      tags:
+      - Register 注册
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  BasicAuth:
+    type: basic
+swagger: "2.0"

@@ -1,0 +1,25 @@
+{
+    "debug":"true",
+    "databases":[
+        {
+            "alias":"default",
+            "engine": "mysql",
+            "host": "159.226.235.1",
+            "port": "3306",
+            "user":"xxx",
+            "password":"xxx",
+            "name":"goharbor",
+            "charset":"utf8"
+        },
+        {
+            "alias":"objs",
+            "engine": "mysql",
+            "host": "159.226.235.10",
+            "port": "3306",
+            "user":"xxx",
+            "password":"xxx",
+            "name":"objs",
+            "charset":"utf8"
+        }
+    ]
+}

@@ -1,0 +1,29 @@
+.bucket-files-table-item {
+	overflow: hidden;
+	text-overflow:ellipsis;
+	white-space: nowrap;
+	/*word-wrap: break-word;*/
+	/*word-break: break-all;*/
+}
+
+.bucket-files-table-item:hover{
+	background-color: #97dffd;
+}
+
+.sidebar {
+	min-height: 100%;
+	/*overflow: auto;*/
+	/*font-size: 12px;*/
+	/*font-weight: 200;*/
+	/*background-color: rgba(165, 189, 194, 0.36);*/
+	/*position: fixed;*/
+	/*top: 60px;*/
+	/*width: 225px;*/
+	/*height: 100%;*/
+	/*color: rgba(33, 38, 39, 0.92);*/
+}
+
+.text-auto-break {
+	word-break:break-all;
+	word-wrap:break-word;
+}
