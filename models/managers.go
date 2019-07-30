@@ -327,10 +327,8 @@ func (m HarborObjectManager) GetObjectsQuery() (query *gorm.DB, err error) {
 // BucketManager manage buckets
 type BucketManager struct {
 	Manager
-	Name     string
-	id       uint64
-	idExists bool
-	User     *UserProfile
+	Name string
+	User *UserProfile
 }
 
 // NewBucketManager return manager for manage buckets
@@ -338,10 +336,9 @@ func NewBucketManager(bucketName string, user *UserProfile) *BucketManager {
 
 	tableName := Bucket{}.TableName()
 	return &BucketManager{
-		Manager:  *NewManager("default", tableName),
-		Name:     bucketName,
-		User:     user,
-		idExists: false,
+		Manager: *NewManager("default", tableName),
+		Name:    bucketName,
+		User:    user,
 	}
 }
 
@@ -354,7 +351,7 @@ func (bm BucketManager) GetBucketByName(name string) (*Bucket, error) {
 
 	bucket := &Bucket{}
 	db := bm.GetDB()
-	if r := db.Find(&bucket, Bucket{Name: name}); r.Error != nil {
+	if r := db.Where("name = ? AND soft_delete = ?", name, false).Find(&bucket); r.Error != nil {
 		if r.RecordNotFound() {
 			return nil, nil
 		}
@@ -373,7 +370,26 @@ func (bm BucketManager) GetBucketByID(id uint64) (*Bucket, error) {
 
 	bucket := &Bucket{}
 	db := bm.GetDB()
-	if r := db.Find(&bucket, id); r.Error != nil {
+	if r := db.Where("id = ? AND soft_delete = ?", id, false).Find(&bucket); r.Error != nil {
+		if r.RecordNotFound() {
+			return nil, nil
+		}
+
+		return nil, errors.New(r.Error.Error())
+	}
+	return bucket, nil
+}
+
+// GetUserBucketByID return user's bucket instance by id
+// return:
+//		*Bucket, nil: exists and no error
+//		nil, nil: not exists and no error
+//		nil, error: have a error
+func (bm BucketManager) GetUserBucketByID(id uint64) (*Bucket, error) {
+
+	bucket := &Bucket{}
+	db := bm.GetDB()
+	if r := db.Where(&Bucket{ID: id, UserID: bm.User.ID}).Where("soft_delete = ?", false).Find(&bucket); r.Error != nil {
 		if r.RecordNotFound() {
 			return nil, nil
 		}
@@ -406,7 +422,7 @@ func (bm BucketManager) GetUserBucketByName(user *UserProfile, name string) (*Bu
 
 	bucket := &Bucket{}
 	db := bm.GetDB()
-	if r := db.Find(&bucket, Bucket{UserID: user.ID, Name: name}); r.Error != nil {
+	if r := db.Where("soft_delete = ?", false).Find(&bucket, Bucket{UserID: user.ID, Name: name}); r.Error != nil {
 		if r.RecordNotFound() {
 			return nil, nil
 		}
@@ -488,5 +504,77 @@ func (bm BucketManager) DeleteBucket(bucket *Bucket) error {
 		return errors.New(r.Error.Error())
 	}
 
+	return nil
+}
+
+// SoftDeleteBucket soft delete a bucket
+func (bm BucketManager) SoftDeleteBucket(bucket *Bucket) error {
+
+	db := bm.GetDB()
+	name := bucket.GetSoftDeleteName()
+	if r := db.Model(bucket).Update(Bucket{SoftDelete: true, Name: name}); r.Error != nil {
+		return errors.New(r.Error.Error())
+	}
+
+	return nil
+}
+
+// SoftDeleteUserBucketsByIDs only soft delete user's buckets by ids
+func (bm BucketManager) SoftDeleteUserBucketsByIDs(ids []string) error {
+
+	var buckets []Bucket
+	db := bm.GetDB()
+	if r := db.Where("user_id = ? AND id IN (?)", bm.User.ID, ids).Find(&buckets); r.Error != nil {
+		if r.RecordNotFound() {
+			return nil
+		}
+		return errors.New(r.Error.Error())
+	}
+	for _, b := range buckets {
+		if !b.IsSoftDelete() {
+			if err := bm.SoftDeleteBucket(&b); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// GetUserBucketsQuery return user's bucket list query db
+func (bm BucketManager) GetUserBucketsQuery() *gorm.DB {
+
+	db := bm.GetDB()
+	user := bm.User
+	return db.Where("user_id = ? AND soft_delete = ?", user.ID, false).Order("id desc")
+}
+
+// SetUserBucketsAccessByIDs set user's buckets access permission by ids
+func (bm BucketManager) SetUserBucketsAccessByIDs(ids []string, public bool) error {
+
+	var perm uint8
+	db := bm.GetDB()
+	if public {
+		perm = BucketPublic
+	} else {
+		perm = BucketPrivate
+	}
+	if r := db.Where("user_id = ? AND id IN (?)", bm.User.ID, ids).
+		Update("access_permission", perm); r.Error != nil {
+		return errors.New(r.Error.Error())
+	}
+
+	return nil
+}
+
+// BucketRename rename a bucket
+func (bm BucketManager) BucketRename(bucket *Bucket, rename string) error {
+
+	db := bm.GetDB()
+	if bucket.Name == rename {
+		return nil
+	}
+	if r := db.Model(bucket).Update("name", rename); r.Error != nil {
+		return errors.New(r.Error.Error())
+	}
 	return nil
 }

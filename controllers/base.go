@@ -89,6 +89,12 @@ func (ctl Controller) Dispatch(ctx *gin.Context) {
 		ctl.this.Get(ctx)
 	case "POST":
 		ctl.this.Post(ctx)
+	case "PUT":
+		ctl.this.Put(ctx)
+	case "DELETE":
+		ctl.this.Delete(ctx)
+	case "PATCH":
+		ctl.this.Patch(ctx)
 	default:
 		MethodNotAllowedJSON(ctx)
 	}

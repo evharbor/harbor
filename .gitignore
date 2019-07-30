@@ -3,3 +3,4 @@
 *.exe
 /upload/*
 /config/config.json
+*debug

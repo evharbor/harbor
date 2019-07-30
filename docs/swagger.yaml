@@ -7,6 +7,33 @@ definitions:
       code_text:
         type: string
     type: object
+  controllers.BucketListJSON:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/models.Bucket'
+        type: array
+      code:
+        type: integer
+      code_text:
+        type: string
+      count:
+        type: integer
+      next:
+        type: string
+      page:
+        $ref: '#/definitions/controllers.PageNumberInfo'
+        type: object
+      previous:
+        type: string
+    type: object
+  controllers.BucketPostForm:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
   controllers.DirCreate400JSON:
     properties:
       code:
@@ -57,11 +84,6 @@ definitions:
       final:
         type: integer
     type: object
-  controllers.PostBucketForm:
-    properties:
-      name:
-        type: string
-    type: object
   controllers.UserListJSON:
     properties:
       code:
@@ -79,6 +101,59 @@ definitions:
           $ref: '#/definitions/models.UserProfile'
         type: array
     type: object
+  controllers.bucketDetailForm:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
+  controllers.bucketDetailJSON:
+    properties:
+      bucket:
+        $ref: '#/definitions/models.Bucket'
+        type: object
+      code:
+        type: integer
+      code_text:
+        type: string
+    type: object
+  controllers.bucketPatchJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      public:
+        type: boolean
+      rename:
+        type: string
+    type: object
+  controllers.bucketPost400JSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      data:
+        $ref: '#/definitions/controllers.BucketPostForm'
+        type: object
+      existing:
+        type: boolean
+    type: object
+  controllers.bucketPostJSON:
+    properties:
+      bucket:
+        $ref: '#/definitions/models.Bucket'
+        type: object
+      code:
+        type: integer
+      code_text:
+        type: string
+      data:
+        $ref: '#/definitions/controllers.BucketPostForm'
+        type: object
+    type: object
   middlewares.JWTLoginForm:
     properties:
       password:
@@ -90,6 +165,21 @@ definitions:
     properties:
       token:
         type: string
+    type: object
+  models.Bucket:
+    properties:
+      access_permission:
+        description: 访问权限
+        type: integer
+      created_time:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      user_id:
+        description: 所属用户id
+        type: integer
     type: object
   models.HarborObject:
     properties:
@@ -157,7 +247,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取存储桶列表
+      description: 通过query参数“offset”和“limit”自定义获取存储桶列表
       parameters:
       - description: The initial index from which to return the results
         in: query
@@ -175,7 +265,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controllers.BaseJSON'
+            $ref: '#/definitions/controllers.BucketListJSON'
             type: object
         "400":
           description: Bad Request
@@ -187,22 +277,82 @@ paths:
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
             type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 获取存储桶列表
       tags:
       - Bucket 存储桶
     post:
       consumes:
       - application/json
-      description: 创建存储桶
+      description: 存储桶名称只能由字母、数字和“-”组成，且不能以“-”开头和结尾，长度3-64字符，符合DNS标准。
       parameters:
       - description: bucket name
         in: body
         name: data
         required: true
         schema:
-          $ref: '#/definitions/controllers.PostBucketForm'
+          $ref: '#/definitions/controllers.BucketPostForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.bucketPostJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.bucketPost400JSON'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 创建存储桶
+      tags:
+      - Bucket 存储桶
+  /api/v1/buckets/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        #设置存储桶访问权限，提交query参数“public”, true(公有)，false(私有);
+        #重命名存储桶，提交query参数“rename”,其值为新名称;
+        #可以一次设置多个存储桶访问权限，其余存储桶id通过form ids传递, 重命名时ids无效。
+        #同时提交“public”和“rename”参数,忽略“rename”参数
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 设置对象公有或私有, true(公有)，false(私有)
+        in: query
+        name: public
+        type: boolean
+      - description: 重命名桶,值为存储桶新名称
+        in: query
+        name: rename
+        type: string
+      - description: bucket id list,一次设置多个桶的权限时使用，命重名桶时无效
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.bucketDetailForm'
           type: object
       produces:
       - application/json
@@ -210,7 +360,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controllers.BaseJSON'
+            $ref: '#/definitions/controllers.bucketPatchJSON'
             type: object
         "400":
           description: Bad Request
@@ -222,9 +372,96 @@ paths:
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
             type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 设置存储桶访问权限或重命名存储桶
+      tags:
+      - Bucket 存储桶
+  /api/v1/buckets/{id}/:
+    delete:
+      consumes:
+      - application/json
+      description: '#可以一次删除多个存储桶，其余存储桶id通过form ids传递。'
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: bucket id list
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.bucketDetailForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 删除存储桶
+      tags:
+      - Bucket 存储桶
+    get:
+      consumes:
+      - application/json
+      description: 获取存储桶详细信息
+      parameters:
+      - description: bucket id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.bucketDetailJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 获取存储桶详细信息
       tags:
       - Bucket 存储桶
   /api/v1/dir/{bucketname}/{dirpath}:

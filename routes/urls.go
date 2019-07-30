@@ -25,7 +25,7 @@ func Urls(ng *gin.Engine) {
 		v1.Any("/users/", ctls.NewUserController().Init().Dispatch)
 		v1.Any("/obj/:bucketname/*objpath", ctls.NewObjController().Init().Dispatch)
 		v1.Any("/buckets/", ctls.NewBucketController().Init().Dispatch)
-		v1.Any("/buckets/:id/", ctls.NewBucketController().Init().Dispatch)
+		v1.Any("/buckets/:id/", ctls.NewBucketDetailController().Init().Dispatch)
 		v1.Any("/dir/:bucketname/*dirpath", ctls.NewDirController().Init().Dispatch)
 	}
 }
