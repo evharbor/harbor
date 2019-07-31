@@ -456,7 +456,7 @@ func (bm BucketManager) CreateBucketByName(name string, user *UserProfile) (*Buc
 
 	bucket := NewBucketDefault()
 	bucket.Name = name
-	bucket.User = *user
+	bucket.UserID = user.ID
 	db := bm.GetDB()
 	if r := db.Create(bucket); r.Error != nil {
 		return nil, errors.New(r.Error.Error())

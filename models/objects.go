@@ -48,8 +48,8 @@ func (v *TypeBucketPermission) Scan(val interface{}) error {
 type Bucket struct {
 	ID               uint64               `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`
 	Name             string               `gorm:"type:varchar(63);unique_index:uidx_name" json:"name"`
-	User             UserProfile          `gorm:"ForeignKey:UserID" json:"-"`                       //所属用户
-	UserID           uint                 `gorm:"column:user_id;index:idx_user_id;" json:"user_id"` //所属用户id
+	User             UserProfile          `gorm:"ForeignKey:UserID;SAVE_ASSOCIATIONS:false" json:"-"` //所属用户
+	UserID           uint                 `gorm:"column:user_id;index:idx_user_id;" json:"user_id"`   //所属用户id
 	CreatedTime      TypeJSONTime         `gorm:"column:created_time;type:datetime;" json:"created_time"`
 	CollectionName   string               `gorm:"column:collection_name;type:varchar(50)" json:"-"`                //存储桶对应的表名
 	AccessPermission TypeBucketPermission `gorm:"column:access_permission;type:smallint" json:"access_permission"` //访问权限

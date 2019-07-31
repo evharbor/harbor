@@ -19,3 +19,6 @@ go get github.com/dgrijalva/jwt-go
 
 # 配置文件管理
 go get -u github.com/spf13/viper
+
+# 下载后放到路径gopath/src/golang.org/x/
+github.com/golang/crypto

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"harbor/utils/auth"
 	"time"
 )
 
@@ -45,13 +46,13 @@ func (u UserProfile) IsActived() bool {
 // CheckPassword Check whether the user's password is the same as the given password
 func (u UserProfile) CheckPassword(pw string) bool {
 
-	return u.Password == pw
+	return auth.CheckPassword(pw,u.Password)
 }
 
 // SetPassword set new password
 func (u *UserProfile) SetPassword(pw string) {
 
-	u.Password = pw
+	u.Password = auth.MakePassword(pw)
 	return
 }
 
