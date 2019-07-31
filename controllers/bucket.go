@@ -72,13 +72,14 @@ func (ctl BucketController) Get(ctx *gin.Context) {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return
 	}
-	var buckets []models.Bucket
+	var buckets = make([]models.Bucket, 0)
 	bManager := models.NewBucketManager("", user)
 	dbQuery := bManager.GetUserBucketsQuery()
 	if err := paginater.PaginateDBQuery(&buckets, dbQuery); err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
 		return
 	}
+
 	current, final := paginater.CurrentAndFinalPageNumber()
 	bj := BaseJSONResponse(200, "ok")
 	data := BucketListJSON{
@@ -97,7 +98,7 @@ func (ctl BucketController) Get(ctx *gin.Context) {
 
 // BucketPostForm create bucket post form struct
 type BucketPostForm struct {
-	Name string `json:"name" binding:"required"`
+	Name string `json:"name" form:"name" binding:"required"`
 }
 
 func (f *BucketPostForm) isValid(ctx *gin.Context) error {
@@ -235,7 +236,7 @@ func (ctl *BucketDetailController) Init() ControllerInterface {
 }
 
 type bucketDetailForm struct {
-	IDs []string `json:"ids" validate:"omitempty,"`
+	IDs []string `json:"ids" form:"ids" validate:"omitempty,"`
 }
 
 func (f *bucketDetailForm) isValid(ctx *gin.Context) error {

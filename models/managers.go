@@ -511,8 +511,10 @@ func (bm BucketManager) DeleteBucket(bucket *Bucket) error {
 func (bm BucketManager) SoftDeleteBucket(bucket *Bucket) error {
 
 	db := bm.GetDB()
-	name := bucket.GetSoftDeleteName()
-	if r := db.Model(bucket).Update(Bucket{SoftDelete: true, Name: name}); r.Error != nil {
+	b := Bucket{SoftDelete: true}
+	b.UpdateModyfiedTime()
+	b.SetSoftDeleteName()
+	if r := db.Model(bucket).Updates(b); r.Error != nil {
 		return errors.New(r.Error.Error())
 	}
 
@@ -551,15 +553,15 @@ func (bm BucketManager) GetUserBucketsQuery() *gorm.DB {
 // SetUserBucketsAccessByIDs set user's buckets access permission by ids
 func (bm BucketManager) SetUserBucketsAccessByIDs(ids []string, public bool) error {
 
-	var perm uint8
-	db := bm.GetDB()
+	bucket := Bucket{}
+	bucket.UpdateModyfiedTime()
 	if public {
-		perm = BucketPublic
+		bucket.AccessPermission = TypeBucketPermission(BucketPublic)
 	} else {
-		perm = BucketPrivate
+		bucket.AccessPermission = TypeBucketPermission(BucketPrivate)
 	}
-	if r := db.Where("user_id = ? AND id IN (?)", bm.User.ID, ids).
-		Update("access_permission", perm); r.Error != nil {
+	db := bm.GetDB()
+	if r := db.Where("user_id = ? AND id IN (?)", bm.User.ID, ids).Updates(bucket); r.Error != nil {
 		return errors.New(r.Error.Error())
 	}
 
