@@ -101,6 +101,24 @@ definitions:
           $ref: '#/definitions/models.UserProfile'
         type: array
     type: object
+  controllers.UserPostForm:
+    properties:
+      company:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      telephone:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
   controllers.bucketDetailForm:
     properties:
       ids:
@@ -172,7 +190,8 @@ definitions:
         description: 访问权限
         type: integer
       created_time:
-        type: string
+        $ref: '#/definitions/models.TypeJSONTime'
+        type: object
       id:
         type: integer
       name:
@@ -210,6 +229,8 @@ definitions:
         description: 修改时间
         type: string
     type: object
+  models.TypeJSONTime:
+    type: object
   models.UserProfile:
     properties:
       company:
@@ -221,8 +242,6 @@ definitions:
       id:
         type: integer
       last_name:
-        type: string
-      password:
         type: string
       telephone:
         type: string
@@ -772,7 +791,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.UserProfile'
+          $ref: '#/definitions/controllers.UserPostForm'
           type: object
       produces:
       - application/json

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -22,6 +23,7 @@ type DBConfig struct {
 type Config struct {
 	Debug     bool       `json:"debug"`
 	Databases []DBConfig `json:"databases"` //database configs
+	BaseDir   string
 }
 
 var configs Config
@@ -31,10 +33,12 @@ func GetConfigs() *Config {
 	return &configs
 }
 
-func init() {
+// LoadConfigFile load config file
+func LoadConfigFile(basDir string) {
+	path := filepath.Join(basDir, "config")
 	v := viper.New()
-	v.SetConfigName("config")   // name of config file (without extension)
-	v.AddConfigPath("./config") // optionally look for config in the working directory
+	v.SetConfigName("config") // name of config file (without extension)
+	v.AddConfigPath(path)     // optionally look for config in the working directory
 	v.SetConfigType("json")
 	// Find and read the config file
 	if err := v.ReadInConfig(); err != nil {
@@ -43,9 +47,5 @@ func init() {
 	if err := v.Unmarshal(&configs); err != nil {
 		panic(fmt.Errorf("fatal error config file: %s ", err))
 	}
-	// var dbs []DBConfig
-	// if err := v.UnmarshalKey("databases", &dbs); err != nil {
-	// 	panic(fmt.Errorf("fatal error config file: %s ", err))
-	// }
-	// configs.Databases = dbs
+	configs.BaseDir = basDir
 }

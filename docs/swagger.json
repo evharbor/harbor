@@ -840,7 +840,7 @@
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/models.UserProfile"
+                            "$ref": "#/definitions/controllers.UserPostForm"
                         }
                     }
                 ],
@@ -1085,6 +1085,33 @@
                 }
             }
         },
+        "controllers.UserPostForm": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "company": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "controllers.bucketDetailForm": {
             "type": "object",
             "properties": {
@@ -1192,7 +1219,8 @@
                     "type": "integer"
                 },
                 "created_time": {
-                    "type": "string"
+                    "type": "object",
+                    "$ref": "#/definitions/models.TypeJSONTime"
                 },
                 "id": {
                     "type": "integer"
@@ -1246,6 +1274,9 @@
                 }
             }
         },
+        "models.TypeJSONTime": {
+            "type": "object"
+        },
         "models.UserProfile": {
             "type": "object",
             "properties": {
@@ -1262,9 +1293,6 @@
                     "type": "integer"
                 },
                 "last_name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 },
                 "telephone": {

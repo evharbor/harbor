@@ -1,14 +1,11 @@
 package controllers
 
 import (
-	"fmt"
 	"harbor/database"
-	"harbor/middlewares"
 	"harbor/models"
 	"harbor/utils"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +36,18 @@ func (ctl *UserController) Init() ControllerInterface {
 	return ctl
 }
 
+// GetPermissions return permission
+func (ctl UserController) GetPermissions(ctx *gin.Context) []PermissionFunc {
+
+	method := strings.ToUpper(ctx.Request.Method)
+	switch method {
+	case "GET", "DELETE":
+		return []PermissionFunc{IsSuperUser}
+	default:
+		return []PermissionFunc{}
+	}
+}
+
 // Get handler for get method
 // @Description 获取用户列表页
 // @Tags user 用户
@@ -54,12 +63,14 @@ func (ctl *UserController) Init() ControllerInterface {
 // @Router /api/v1/users/ [get]
 func (ctl UserController) Get(ctx *gin.Context) {
 
-	user, exists := ctx.Get(middlewares.AuthUserKey)
-	if exists {
-		u, ok := user.(*models.UserProfile)
-		if ok {
-			fmt.Println(u)
-		}
+	user := AuthUserOrAbort(ctx)
+	if user == nil {
+		return
+	}
+
+	if !ctl.HasPermission(ctx) {
+		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
+		return
 	}
 
 	db := database.GetDBDefault()
@@ -87,13 +98,36 @@ func (ctl UserController) Get(ctx *gin.Context) {
 	ctx.JSON(200, data)
 }
 
+// UserPostForm post form
+type UserPostForm struct {
+	Username  string `form:"username" json:"username" binding:"max=100,email,required"`
+	Password  string `form:"password" json:"password" binding:"min=8,max=128,required"`
+	FirstName string `form:"first_name" json:"first_name,omitempty" binding:"max=30"`
+	LastName  string `form:"last_name" json:"last_name,omitempty" binding:"max=30"`
+	Company   string `form:"company" json:"company,omitempty" binding:"max=255"`
+	Telephone string `form:"telephone" json:"telephone,omitempty" binding:"max=11"`
+}
+
+func (f *UserPostForm) isValid(ctx *gin.Context) error {
+
+	if err := ctx.ShouldBind(f); err != nil {
+		return err
+	}
+	return f.validate()
+}
+
+func (f UserPostForm) validate() error {
+
+	return nil
+}
+
 // Post controller
 // @Description 创建用户
 // @Tags user 用户
 // @Accept  json
 // @Produce  json
-// @Param   user     body    models.UserProfile     true        "用户名"
-// @Success 200 {object} controllers.BaseJSON
+// @Param   user     body    controllers.UserPostForm     true        "用户名"
+// @Success 201 {object} controllers.BaseJSON
 // @Failure 400 {object} controllers.BaseJSON
 // @Failure 404 {object} controllers.BaseJSON
 // @Security BasicAuth
@@ -101,25 +135,37 @@ func (ctl UserController) Get(ctx *gin.Context) {
 // @Router /api/v1/users/ [post]
 func (ctl UserController) Post(ctx *gin.Context) {
 
-	user := models.UserProfile{}
-	err := ctx.ShouldBind(&user)
-	if err != nil {
+	form := UserPostForm{}
+	if err := form.isValid(ctx); err != nil {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return
 	}
-	u := models.UserProfile{}
+
+	user := models.UserProfile{}
 	db := database.GetDBDefault()
-	if db.Where("username = ?", user.Username).First(&u).RowsAffected > 0 {
-		ctx.JSON(400, BaseJSONResponse(400, "用户已存在"))
-		return
+	r := db.Where("username = ?", form.Username).First(&user)
+	if r.Error == nil {
+		if user.IsActived() {
+			ctx.JSON(400, BaseJSONResponse(400, "user already exists"))
+			return
+		}
+	} else if r.RecordNotFound() {
+		user.IsActive = false
 	}
 
-	user.DateJoined = time.Now()
-	if r := db.Create(&user); r.RowsAffected == 1 && r.Error == nil {
+	user.Username = form.Username
+	user.Email = form.Username
+	user.FirstName = form.FirstName
+	user.LastName = form.LastName
+	user.Company = form.Company
+	user.Telephone = form.Telephone
+	user.DateJoined = models.JSONTimeNow()
+	user.SetPassword(form.Password)
+	if r := db.Save(&user); r.RowsAffected == 1 && r.Error == nil {
 		ctx.JSON(201, BaseJSONResponse(201, "用户创建成功"))
 		return
 	}
-	ctx.JSON(200, BaseJSONResponse(200, "用户创建失败"))
+	ctx.JSON(500, BaseJSONResponse(500, "用户创建失败"))
 }
 
 // UserRegister 注册用户

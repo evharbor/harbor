@@ -2,16 +2,21 @@ package controllers
 
 import (
 	"fmt"
+	"harbor/models"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
+// PermissionFunc permission func
+type PermissionFunc func(user *models.UserProfile) bool
+
 // ControllerInterface 控制器接口
 type ControllerInterface interface {
 	Init() ControllerInterface
 	Dispatch(ctx *gin.Context)
+	GetPermissions(ctx *gin.Context) []PermissionFunc
 	Get(ctx *gin.Context)
 	Post(ctx *gin.Context)
 	Delete(ctx *gin.Context)
@@ -75,6 +80,29 @@ func (ctl Controller) Patch(ctx *gin.Context) {
 func (ctl Controller) Options(ctx *gin.Context) {
 
 	MethodNotAllowedJSON(ctx)
+}
+
+// GetPermissions return permission
+// 可以重写此方法，自定义配置权限
+func (ctl Controller) GetPermissions(ctx *gin.Context) []PermissionFunc {
+
+	return []PermissionFunc{}
+}
+
+// HasPermission check whether current user has permission
+func (ctl Controller) HasPermission(ctx *gin.Context) bool {
+
+	user := AuthUserOrAbort(ctx)
+	if user == nil {
+		return false
+	}
+	perms := ctl.this.GetPermissions(ctx)
+	for _, f := range perms {
+		if !f(user) {
+			return false
+		}
+	}
+	return true
 }
 
 // Dispatch by request method dispatch it's controller

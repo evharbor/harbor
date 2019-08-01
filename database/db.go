@@ -10,7 +10,8 @@ import (
 
 var dbConnMap map[string]*gorm.DB
 
-func init() {
+// InitDatabase connect to database
+func InitDatabase() {
 	dbConnMap = make(map[string]*gorm.DB)
 	configs := config.GetConfigs()
 	debug := configs.Debug

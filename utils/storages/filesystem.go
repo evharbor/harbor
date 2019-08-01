@@ -2,11 +2,14 @@ package storages
 
 import (
 	"errors"
+	"harbor/config"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 )
+
+var configs = config.GetConfigs()
 
 // FileStorage manage write or read file on local file system
 type FileStorage struct {
@@ -259,14 +262,6 @@ func GetCurrentPath() (string, error) {
 		return "", err
 	}
 	return path, nil
-	// if runtime.GOOS == "windows" {
-	// 	path = strings.Replace(path, "\\", "/", -1)
-	// }
-	// i := strings.LastIndex(path, "/")
-	// if i < 0 {
-	// 	return "", errors.New(`Can't find "/" or "\".`)
-	// }
-	// return string(path[0 : i+1]), nil
 }
 
 // DirExists 目录是否存在
@@ -288,9 +283,6 @@ func DirExists(path string) (bool, error) {
 }
 
 func getUploadPath() string {
-	baseDir, err := GetCurrentPath()
-	if err != nil {
-		baseDir = "."
-	}
-	return filepath.Join(baseDir, "upload")
+
+	return filepath.Join(configs.BaseDir, "upload")
 }
