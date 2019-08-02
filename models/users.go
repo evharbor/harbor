@@ -103,6 +103,22 @@ func (u UserProfile) IsAppSuperUser() bool {
 	return u.IsRole(RoleAppSuperUser)
 }
 
+// IsNormalUser return true if user is normal user
+func (u UserProfile) IsNormalUser() bool {
+
+	if u.IsSuper() {
+		return false
+	}
+	if u.IsStaffUser() {
+		return false
+	}
+	if u.IsAppSuperUser() {
+		return false
+	}
+
+	return true
+}
+
 // IsRole check whether user's role is input role
 func (u UserProfile) IsRole(role TypeRole) bool {
 

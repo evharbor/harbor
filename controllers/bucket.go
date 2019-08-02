@@ -332,7 +332,7 @@ func (ctl BucketDetailController) Get(ctx *gin.Context) {
 // @Produce  json
 // @Param   id path int64 true "bucket id"
 // @Param   data body controllers.bucketDetailForm true "bucket id list"
-// @Success 204 {object} controllers.BaseJSON
+// @Success 204 {string} string
 // @Failure 400 {object} controllers.BaseJSON
 // @Failure 500 {object} controllers.BaseJSON
 // @Security BasicAuth
@@ -362,7 +362,7 @@ func (ctl BucketDetailController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(204, BaseJSONResponse(204, "ok"))
+	ctx.JSON(204, nil)
 }
 
 type bucketPatchJSON struct {

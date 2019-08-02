@@ -84,6 +84,16 @@ definitions:
       final:
         type: integer
     type: object
+  controllers.UserDetailJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserProfile'
+        type: object
+    type: object
   controllers.UserListJSON:
     properties:
       code:
@@ -100,6 +110,19 @@ definitions:
         items:
           $ref: '#/definitions/models.UserProfile'
         type: array
+    type: object
+  controllers.UserPatchForm:
+    properties:
+      company:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      telephone:
+        type: string
     type: object
   controllers.UserPostForm:
     properties:
@@ -426,8 +449,7 @@ paths:
         "204":
           description: No Content
           schema:
-            $ref: '#/definitions/controllers.BaseJSON'
-            type: object
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -746,7 +768,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取用户列表页
+      description: 通过query参数“offset”和“limit”自定义获取用户列表信息
       parameters:
       - description: The initial index from which to return the results
         in: query
@@ -779,12 +801,15 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 获取用户列表页
       tags:
       - user 用户
     post:
       consumes:
       - application/json
-      description: 创建用户
+      description: |-
+        用户名必须是邮箱
+        密码长度至少8位
       parameters:
       - description: 用户名
         in: body
@@ -796,8 +821,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
             type: object
@@ -814,6 +839,124 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 创建用户
+      tags:
+      - user 用户
+  /api/v1/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 通过用户id删除一个用户
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 删除一个用户
+      tags:
+      - user 用户
+    get:
+      consumes:
+      - application/json
+      description: 通过用户id获取用户详细信息,需要超级用户权限,或id是当前认证用户id
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserDetailJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 获取一个用户详细信息
+      tags:
+      - user 用户
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        1、超级职员用户拥有所有权限；
+        2、用户拥有修改自己信息的权限；
+        3、超级用户只有修改普通用户信息的权限
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: change info
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UserPatchForm'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserDetailJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 修改用户信息
       tags:
       - user 用户
   /user/register/:

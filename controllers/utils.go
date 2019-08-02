@@ -100,8 +100,8 @@ func BuildPathBreadcrumb(path string) *[]BreadcrumbItem {
 	return &breadcrumb
 }
 
-// AuthUserOrAbort try get auth user or abort
-func AuthUserOrAbort(ctx *gin.Context) *models.UserProfile {
+// AuthUserOrNil try get auth user or nil
+func AuthUserOrNil(ctx *gin.Context) *models.UserProfile {
 
 	if iUser, exists := ctx.Get("user"); exists {
 		user, ok := iUser.(*models.UserProfile)
@@ -109,10 +109,19 @@ func AuthUserOrAbort(ctx *gin.Context) *models.UserProfile {
 			return user
 		}
 	}
-
 	// if user := middlewares.UserFromJWTPayload(ctx); user != nil {
 	// 	return user
 	// }
+	return nil
+}
+
+// AuthUserOrAbort try get auth user or abort
+func AuthUserOrAbort(ctx *gin.Context) *models.UserProfile {
+
+	user := AuthUserOrNil(ctx)
+	if user != nil {
+		return user
+	}
 
 	ctx.JSON(401, BaseJSONResponse(401, "unauthenticated user"))
 	ctx.Abort()

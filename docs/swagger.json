@@ -331,8 +331,7 @@
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "type": "object",
-                            "$ref": "#/definitions/controllers.BaseJSON"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -763,7 +762,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "获取用户列表页",
+                "description": "通过query参数“offset”和“limit”自定义获取用户列表信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -773,6 +772,7 @@
                 "tags": [
                     "user 用户"
                 ],
+                "summary": "获取用户列表页",
                 "parameters": [
                     {
                         "type": "integer",
@@ -822,7 +822,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "创建用户",
+                "description": "用户名必须是邮箱\n密码长度至少8位",
                 "consumes": [
                     "application/json"
                 ],
@@ -832,6 +832,7 @@
                 "tags": [
                     "user 用户"
                 ],
+                "summary": "创建用户",
                 "parameters": [
                     {
                         "description": "用户名",
@@ -845,11 +846,188 @@
                     }
                 ],
                 "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "通过用户id获取用户详细信息,需要超级用户权限,或id是当前认证用户id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user 用户"
+                ],
+                "summary": "获取一个用户详细信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "object",
+                            "$ref": "#/definitions/controllers.UserDetailJSON"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "通过用户id删除一个用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user 用户"
+                ],
+                "summary": "删除一个用户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "1、超级职员用户拥有所有权限；\n2、用户拥有修改自己信息的权限；\n3、超级用户只有修改普通用户信息的权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user 用户"
+                ],
+                "summary": "修改用户信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "change info",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.UserPatchForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.UserDetailJSON"
                         }
                     },
                     "400": {
@@ -1059,6 +1237,21 @@
                 }
             }
         },
+        "controllers.UserDetailJSON": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "code_text": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "object",
+                    "$ref": "#/definitions/models.UserProfile"
+                }
+            }
+        },
         "controllers.UserListJSON": {
             "type": "object",
             "properties": {
@@ -1082,6 +1275,26 @@
                     "items": {
                         "$ref": "#/definitions/models.UserProfile"
                     }
+                }
+            }
+        },
+        "controllers.UserPatchForm": {
+            "type": "object",
+            "properties": {
+                "company": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
                 }
             }
         },

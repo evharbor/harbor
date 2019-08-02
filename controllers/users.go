@@ -49,7 +49,8 @@ func (ctl UserController) GetPermissions(ctx *gin.Context) []PermissionFunc {
 }
 
 // Get handler for get method
-// @Description 获取用户列表页
+// @Summary 获取用户列表页
+// @Description 通过query参数“offset”和“limit”自定义获取用户列表信息
 // @Tags user 用户
 // @Accept  json
 // @Produce  json
@@ -122,7 +123,9 @@ func (f UserPostForm) validate() error {
 }
 
 // Post controller
-// @Description 创建用户
+// @Summary 创建用户
+// @Description 用户名必须是邮箱
+// @Description 密码长度至少8位
 // @Tags user 用户
 // @Accept  json
 // @Produce  json
@@ -192,4 +195,247 @@ func UserRegister(ctx *gin.Context) {
 		"username": username,
 		"password": password,
 	})
+}
+
+// UserDetailController 用户详情控制器结构
+type UserDetailController struct {
+	Controller
+}
+
+// UserDetailJSON 用户详情信息结构
+type UserDetailJSON struct {
+	BaseJSON
+	User models.UserProfile `json:"user"`
+}
+
+// NewUserDetailController new controller
+func NewUserDetailController() *UserDetailController {
+	return &UserDetailController{}
+}
+
+// Init 初始化this，子类要重写此方法
+func (ctl *UserDetailController) Init() ControllerInterface {
+
+	ctl.this = ctl
+	return ctl
+}
+
+// GetPermissions return permission
+func (ctl UserDetailController) GetPermissions(ctx *gin.Context) []PermissionFunc {
+
+	method := strings.ToUpper(ctx.Request.Method)
+	switch method {
+	case "GET", "PATCH":
+		return []PermissionFunc{IsAuthenticatedUser}
+	case "DELETE":
+		return []PermissionFunc{IsStaffSuperUser}
+	default:
+		return []PermissionFunc{}
+	}
+}
+
+// Get handler for get method
+// @Summary 获取一个用户详细信息
+// @Description 通过用户id获取用户详细信息,需要超级用户权限,或id是当前认证用户id
+// @Tags user 用户
+// @Accept  json
+// @Produce  json
+// @Param   id     path    int     true        "user id"
+// @Success 200 {object} controllers.UserDetailJSON
+// @Failure 400 {object} controllers.BaseJSON
+// @Failure 404 {object} controllers.BaseJSON
+// @Security BasicAuth
+// @Security ApiKeyAuth
+// @Router /api/v1/users/{id} [get]
+func (ctl UserDetailController) Get(ctx *gin.Context) {
+
+	if !ctl.HasPermission(ctx) {
+		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
+		return
+	}
+
+	id := ctl.GetParamID(ctx)
+	if id == 0 {
+		ctx.JSON(400, BaseJSONResponse(400, "invalid param id"))
+		return
+	}
+
+	u := models.UserProfile{}
+	db := database.GetDBDefault()
+	if r := db.First(&u, id); r.Error != nil {
+		if r.RecordNotFound() {
+			ctx.JSON(404, BaseJSONResponse(404, "user not found"))
+			return
+		}
+		ctx.JSON(500, BaseJSONResponse(500, r.Error.Error()))
+		return
+	}
+
+	// current user is super user or get user is current user
+	user := ctl.user
+	if IsSuperUser(user) || user.ID == uint(id) {
+		bj := BaseJSONResponse(200, "ok")
+		data := UserDetailJSON{
+			BaseJSON: *bj,
+			User:     u,
+		}
+		ctx.JSON(200, data)
+		return
+	}
+	ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
+	return
+}
+
+// UserPatchForm patch form
+type UserPatchForm struct {
+	Password  string `form:"password" json:"password,omitempty" binding:"omitempty,min=8,max=128"`
+	FirstName string `form:"first_name" json:"first_name,omitempty" binding:"omitempty,max=30"`
+	LastName  string `form:"last_name" json:"last_name,omitempty" binding:"omitempty,max=30"`
+	Company   string `form:"company" json:"company,omitempty" binding:"omitempty,max=255"`
+	Telephone string `form:"telephone" json:"telephone,omitempty" binding:"omitempty,max=11"`
+}
+
+func (f *UserPatchForm) isValid(ctx *gin.Context) error {
+
+	if err := ctx.ShouldBind(f); err != nil {
+		return err
+	}
+	return f.validate()
+}
+
+func (f UserPatchForm) validate() error {
+
+	return nil
+}
+
+func (f UserPatchForm) updateUser(user *models.UserProfile) error {
+
+	if f.Company != "" {
+		user.Company = f.Company
+	}
+	if f.FirstName != "" {
+		user.FirstName = f.FirstName
+	}
+	if f.LastName != "" {
+		user.LastName = f.LastName
+	}
+	if f.Telephone != "" {
+		user.Telephone = f.Telephone
+	}
+	if f.Password != "" {
+		user.SetPassword(f.Password)
+	}
+
+	db := database.GetDBDefault()
+	if r := db.Save(user); r.Error != nil {
+		return r.Error
+	}
+
+	return nil
+}
+
+// Patch handler for get method
+// @Summary 修改用户信息
+// @Description 1、超级职员用户拥有所有权限；
+// @Description 2、用户拥有修改自己信息的权限；
+// @Description 3、超级用户只有修改普通用户信息的权限
+// @Tags user 用户
+// @Accept  json
+// @Produce  json
+// @Param   id     path    int     true        "user id"
+// @Param   data   body	controllers.UserPatchForm true "change info"
+// @Success 200 {object} controllers.UserDetailJSON
+// @Failure 400 {object} controllers.BaseJSON
+// @Failure 404 {object} controllers.BaseJSON
+// @Security BasicAuth
+// @Security ApiKeyAuth
+// @Router /api/v1/users/{id} [patch]
+func (ctl UserDetailController) Patch(ctx *gin.Context) {
+
+	if !ctl.HasPermission(ctx) {
+		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
+		return
+	}
+
+	form := UserPatchForm{}
+	if err := form.isValid(ctx); err != nil {
+		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
+		return
+	}
+
+	id := ctl.GetParamID(ctx)
+	if id == 0 {
+		ctx.JSON(400, BaseJSONResponse(400, "invalid param id"))
+		return
+	}
+	u := models.UserProfile{}
+	db := database.GetDBDefault()
+	if r := db.First(&u, id); r.Error != nil {
+		if r.RecordNotFound() {
+			ctx.JSON(404, BaseJSONResponse(404, "user not found"))
+			return
+		}
+		ctx.JSON(500, BaseJSONResponse(500, r.Error.Error()))
+		return
+	}
+
+	user := ctl.user
+	// 职员超级用户
+	if IsStaffSuperUser(user) ||
+		// 超级用户修改普通用户
+		(IsSuperUser(user) && u.IsNormalUser()) ||
+		// 修改当前用户自己
+		(user.ID == u.ID) {
+		if err := form.updateUser(&u); err != nil {
+			ctx.JSON(500, BaseJSONResponse(500, err.Error()))
+			return
+		}
+		ctx.JSON(200, BaseJSONResponse(200, "ok"))
+		return
+	}
+	ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
+	return
+}
+
+// Delete handler for get method
+// @Summary 删除一个用户
+// @Description 通过用户id删除一个用户
+// @Tags user 用户
+// @Accept  json
+// @Produce  json
+// @Param   id     path    int     true        "user id"
+// @Success 204 {string} string "No content"
+// @Failure 400 {object} controllers.BaseJSON
+// @Failure 403 {object} controllers.BaseJSON
+// @Failure 404 {object} controllers.BaseJSON
+// @Security BasicAuth
+// @Security ApiKeyAuth
+// @Router /api/v1/users/{id} [delete]
+func (ctl UserDetailController) Delete(ctx *gin.Context) {
+
+	id := ctl.GetParamID(ctx)
+	if id == 0 {
+		ctx.JSON(400, BaseJSONResponse(400, "invalid param id"))
+		return
+	}
+
+	u := models.UserProfile{}
+	db := database.GetDBDefault()
+	if r := db.First(&u, id); r.Error != nil {
+		if r.RecordNotFound() {
+			ctx.JSON(404, BaseJSONResponse(404, "user not found"))
+			return
+		}
+		ctx.JSON(500, BaseJSONResponse(500, r.Error.Error()))
+		return
+	}
+	// 改为非激活用户
+	if u.IsActived() {
+		// u.IsActive = false
+		if err := db.Table(u.TableName()).Where("id = ?", u.ID).Update("is_active", "false").Error; err != nil {
+			ctx.JSON(500, BaseJSONResponse(500, err.Error()))
+			return
+		}
+	}
+	ctx.JSON(204, nil)
 }
