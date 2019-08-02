@@ -1,10 +1,11 @@
-package utils
+package paginations
 
 import (
 	"bytes"
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"harbor/utils/convert"
 	"reflect"
 	"strconv"
 
@@ -284,7 +285,7 @@ func (p *OptimizedLimitOffsetPagination) GetID(paginateOut interface{}) (id uint
 		err = e
 		return
 	}
-	id, err = ToUint(value)
+	id, err = convert.ToUint(value)
 	return
 }
 
@@ -466,5 +467,3 @@ func GetValueFromStructByName(obj interface{}, name string) (value interface{}, 
 	err = errors.New("Input must be struct or struct slice")
 	return
 }
-
-

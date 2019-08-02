@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"harbor/models"
-	"harbor/utils"
+	"harbor/utils/paginations"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,7 +81,7 @@ func (ctl DirController) Get(ctx *gin.Context) {
 		return
 	}
 
-	paginater := utils.NewOptimizedLimitOffsetPagination()
+	paginater := paginations.NewOptimizedLimitOffsetPagination()
 	if err := paginater.PrePaginate(ctx); err != nil {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return

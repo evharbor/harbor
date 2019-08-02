@@ -3,7 +3,7 @@ package controllers
 import (
 	"harbor/database"
 	"harbor/models"
-	"harbor/utils"
+	"harbor/utils/paginations"
 	"net/http"
 	"strings"
 
@@ -74,7 +74,7 @@ func (ctl UserController) Get(ctx *gin.Context) {
 	}
 
 	db := database.GetDBDefault()
-	paginater := utils.NewOptimizedLimitOffsetPagination()
+	paginater := paginations.NewOptimizedLimitOffsetPagination()
 	if err := paginater.PrePaginate(ctx); err != nil {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return

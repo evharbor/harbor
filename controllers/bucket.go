@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"harbor/models"
-	"harbor/utils"
+	"harbor/utils/paginations"
 	"regexp"
 	"strconv"
 	"strings"
@@ -67,7 +67,7 @@ func (ctl BucketController) Get(ctx *gin.Context) {
 		return
 	}
 
-	paginater := utils.NewOptimizedLimitOffsetPagination()
+	paginater := paginations.NewOptimizedLimitOffsetPagination()
 	if err := paginater.PrePaginate(ctx); err != nil {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return
