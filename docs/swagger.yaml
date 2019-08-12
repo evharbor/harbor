@@ -49,6 +49,9 @@ definitions:
         type: integer
       code_text:
         type: string
+      data:
+        $ref: '#/definitions/controllers.dirCreateData'
+        type: object
       dir:
         $ref: '#/definitions/models.HarborObject'
         type: object
@@ -195,6 +198,15 @@ definitions:
         $ref: '#/definitions/controllers.BucketPostForm'
         type: object
     type: object
+  controllers.dirCreateData:
+    properties:
+      bucket_name:
+        type: string
+      dir_name:
+        type: string
+      dir_path:
+        type: string
+    type: object
   middlewares.JWTLoginForm:
     properties:
       password:
@@ -246,11 +258,13 @@ definitions:
         description: 文件大小, 字节数
         type: integer
       ult:
+        $ref: '#/definitions/models.TypeJSONTime'
         description: 文件的上传时间，或目录的创建时间
-        type: string
+        type: object
       upt:
+        $ref: '#/definitions/models.TypeJSONTime'
         description: 修改时间
-        type: string
+        type: object
     type: object
   models.TypeJSONTime:
     type: object
@@ -506,10 +520,48 @@ paths:
       tags:
       - Bucket 存储桶
   /api/v1/dir/{bucketname}/{dirpath}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除一个空目录
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: dirpath
+        in: path
+        name: dirpath
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 删除空目录
+      tags:
+      - Dir 目录
     get:
       consumes:
       - application/json
-      description: 获取目录下目录和对象列表
+      description: 通过query参数“offset”和“limit”自定义获取目录下子目录和对象列表
       parameters:
       - description: bucketname
         in: path
@@ -551,12 +603,13 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 获取目录下子目录和对象列表
       tags:
       - Dir 目录
     post:
       consumes:
       - application/json
-      description: 创建目录
+      description: 创建一个目录
       parameters:
       - description: bucketname
         in: path
@@ -589,6 +642,7 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 创建目录
       tags:
       - Dir 目录
   /api/v1/jwt-token-refresh/:
@@ -596,7 +650,7 @@ paths:
       consumes:
       - application/json
       - application/x-www-form-urlencoded
-      description: jwt refresh handler
+      description: jwt refresh
       parameters:
       - description: jwt
         in: body
@@ -626,13 +680,14 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 刷新jwt
       tags:
       - jwt
   /api/v1/jwt-token/:
     post:
       consumes:
       - application/json
-      description: jwt login handler
+      description: jwt login
       parameters:
       - description: auth info
         in: body
@@ -662,6 +717,7 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
+      summary: 认证获取jwt
       tags:
       - jwt
   /api/v1/obj/{bucketname}/{objpath}:

@@ -127,21 +127,21 @@ func (b *Bucket) UpdateModyfiedTime() {
 
 // HarborObject 对象结构
 type HarborObject struct {
-	ID              uint64    `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`
-	PathName        string    `gorm:"column:na;not null" json:"na"`                                             //全路径文件名或目录名
-	FileOrDir       bool      `gorm:"column:fod;index:idx_fod_did;not null" json:"fod"`                         //True==文件，False==目录
-	ParentID        uint64    `gorm:"column:did;index:idx_fod_did;unique_index:udx_did_name;not null" json:"-"` //父节点id
-	Name            string    `gorm:"type:varchar(255);unique_index:udx_did_name;not null" json:"name"`         //文件名或目录名
-	Size            uint64    `gorm:"cloumn:si;not null" json:"si"`                                             //文件大小, 字节数
-	UploadTime      time.Time `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
-	UpdateTime      time.Time `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
-	DownloadCount   uint64    `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0
-	IsShared        bool      `gorm:"column:sh;not null" json:"sh"`                                             //为True，则文件可共享，为False，则文件不能共享
-	ShareCode       string    `gorm:"column:shp;type:varchar(10);not null" json:"-"`                            //该文件的共享密码，目录时为空
-	IsSharedLimit   bool      `gorm:"column:stl;default:true;not null" json:"-"`                                //True: 文件有共享时间限制; False: 则文件无共享时间限制
-	SharedStartTime time.Time `gorm:"column:sst;not null" json:"-"`                                             //该文件的共享起始时间
-	SharedEndTime   time.Time `gorm:"column:set;not null" json:"-"`                                             //该文件的共享终止时间
-	SoftDeleted     bool      `gorm:"column:sds;not null" json:"-"`                                             //软删除,True->删除状态
+	ID              uint64       `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`
+	PathName        string       `gorm:"column:na;not null" json:"na"`                                             //全路径文件名或目录名
+	FileOrDir       bool         `gorm:"column:fod;index:idx_fod_did;not null" json:"fod"`                         //True==文件，False==目录
+	ParentID        uint64       `gorm:"column:did;index:idx_fod_did;unique_index:udx_did_name;not null" json:"-"` //父节点id
+	Name            string       `gorm:"type:varchar(255);unique_index:udx_did_name;not null" json:"name"`         //文件名或目录名
+	Size            uint64       `gorm:"cloumn:si;not null" json:"si"`                                             //文件大小, 字节数
+	UploadTime      TypeJSONTime `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
+	UpdateTime      TypeJSONTime `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
+	DownloadCount   uint64       `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0
+	IsShared        bool         `gorm:"column:sh;not null" json:"sh"`                                             //为True，则文件可共享，为False，则文件不能共享
+	ShareCode       string       `gorm:"column:shp;type:varchar(10);not null" json:"-"`                            //该文件的共享密码，目录时为空
+	IsSharedLimit   bool         `gorm:"column:stl;default:true;not null" json:"-"`                                //True: 文件有共享时间限制; False: 则文件无共享时间限制
+	SharedStartTime time.Time    `gorm:"column:sst;not null" json:"-"`                                             //该文件的共享起始时间
+	SharedEndTime   time.Time    `gorm:"column:set;not null" json:"-"`                                             //该文件的共享终止时间
+	SoftDeleted     bool         `gorm:"column:sds;not null" json:"-"`                                             //软删除,True->删除状态
 }
 
 // NewHarborObject create a harbor object
@@ -151,7 +151,7 @@ func NewHarborObject() *HarborObject {
 
 // NewHarborObjectDefault create a harbor object initialized with default value
 func NewHarborObjectDefault() *HarborObject {
-	now := time.Now()
+	now := JSONTimeNow()
 	return &HarborObject{
 		UploadTime:    now,
 		UpdateTime:    now,
@@ -162,7 +162,7 @@ func NewHarborObjectDefault() *HarborObject {
 
 // NewHarborDirDefault create a harbor dir initialized with default value
 func NewHarborDirDefault() *HarborObject {
-	now := time.Now()
+	now := JSONTimeNow()
 	return &HarborObject{
 		UploadTime: now,
 		UpdateTime: now,
@@ -183,7 +183,14 @@ func (ho *HarborObject) SetSizeOnlyIncrease(size uint64) {
 // @Tips: This change will not be updated to the database,you need to update it explicitly.
 func (ho *HarborObject) UpdateModyfiedTime() {
 
-	ho.UpdateTime = time.Now()
+	ho.UpdateTime = JSONTimeNow()
+}
+
+// UpdateUploadTime  update create time of HarborObject
+// @Tips: This change will not be updated to the database,you need to update it explicitly.
+func (ho *HarborObject) UpdateUploadTime() {
+
+	ho.UploadTime = JSONTimeNow()
 }
 
 // GetObjKey return object's identify key

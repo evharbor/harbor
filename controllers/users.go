@@ -64,16 +64,6 @@ func (ctl UserController) GetPermissions(ctx *gin.Context) []PermissionFunc {
 // @Router /api/v1/users/ [get]
 func (ctl UserController) Get(ctx *gin.Context) {
 
-	user := AuthUserOrAbort(ctx)
-	if user == nil {
-		return
-	}
-
-	if !ctl.HasPermission(ctx) {
-		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
-		return
-	}
-
 	db := database.GetDBDefault()
 	paginater := paginations.NewOptimizedLimitOffsetPagination()
 	if err := paginater.PrePaginate(ctx); err != nil {
@@ -249,11 +239,6 @@ func (ctl UserDetailController) GetPermissions(ctx *gin.Context) []PermissionFun
 // @Router /api/v1/users/{id} [get]
 func (ctl UserDetailController) Get(ctx *gin.Context) {
 
-	if !ctl.HasPermission(ctx) {
-		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
-		return
-	}
-
 	id := ctl.GetParamID(ctx)
 	if id == 0 {
 		ctx.JSON(400, BaseJSONResponse(400, "invalid param id"))
@@ -351,11 +336,6 @@ func (f UserPatchForm) updateUser(user *models.UserProfile) error {
 // @Security ApiKeyAuth
 // @Router /api/v1/users/{id} [patch]
 func (ctl UserDetailController) Patch(ctx *gin.Context) {
-
-	if !ctl.HasPermission(ctx) {
-		ctx.JSON(403, BaseJSONResponse(403, "forbidded"))
-		return
-	}
 
 	form := UserPatchForm{}
 	if err := form.isValid(ctx); err != nil {

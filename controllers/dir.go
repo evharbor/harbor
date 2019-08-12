@@ -3,6 +3,7 @@ package controllers
 import (
 	"harbor/models"
 	"harbor/utils/paginations"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,18 @@ func (ctl *DirController) Init() ControllerInterface {
 	return ctl
 }
 
+// GetPermissions return permission
+func (ctl DirController) GetPermissions(ctx *gin.Context) []PermissionFunc {
+
+	method := strings.ToUpper(ctx.Request.Method)
+	switch method {
+	case "GET", "POST", "DELETE":
+		return []PermissionFunc{IsAuthenticatedUser}
+	default:
+		return []PermissionFunc{}
+	}
+}
+
 // DirListJSON 目录列表信息结构
 type DirListJSON struct {
 	BaseJSON
@@ -37,7 +50,8 @@ type DirListJSON struct {
 }
 
 // Get controller
-// @Description 获取目录下目录和对象列表
+// @Summary 获取目录下子目录和对象列表
+// @Description 通过query参数“offset”和“limit”自定义获取目录下子目录和对象列表
 // @Tags Dir 目录
 // @Accept  json
 // @Produce  json
@@ -57,11 +71,7 @@ func (ctl DirController) Get(ctx *gin.Context) {
 	dirPath := ctx.Param("dirpath")
 	dirPath = ClearPath(dirPath)
 
-	user := AuthUserOrAbort(ctx)
-	if user == nil {
-		return
-	}
-
+	user := ctl.user
 	bm := models.NewBucketManager(bucketName, user)
 	bucket, err := bm.GetUserBucket()
 	if err != nil {
@@ -109,10 +119,17 @@ func (ctl DirController) Get(ctx *gin.Context) {
 	ctx.JSON(200, data)
 }
 
+type dirCreateData struct {
+	BucketName string `json:"bucket_name"`
+	DirPath    string `json:"dir_path"`
+	DirName    string `json:"dir_name"`
+}
+
 // DirCreateJSON create dir response json struct
 type DirCreateJSON struct {
 	BaseJSON
-	Dir *models.HarborObject
+	Data dirCreateData        `json:"data"`
+	Dir  *models.HarborObject `json:"dir"`
 }
 
 // DirCreate400JSON create dir response json struct
@@ -122,7 +139,8 @@ type DirCreate400JSON struct {
 }
 
 // Post controller
-// @Description 创建目录
+// @Summary 创建目录
+// @Description 创建一个目录
 // @Tags Dir 目录
 // @Accept  json
 // @Produce  json
@@ -140,11 +158,7 @@ func (ctl DirController) Post(ctx *gin.Context) {
 	dirPath := ctx.Param("dirpath")
 	dirPath, dirName := SplitPathAndFilename(dirPath)
 
-	user := AuthUserOrAbort(ctx)
-	if user == nil {
-		return
-	}
-
+	user := ctl.user
 	bm := models.NewBucketManager(bucketName, user)
 	bucket, err := bm.GetUserBucket()
 	if err != nil {
@@ -176,7 +190,70 @@ func (ctl DirController) Post(ctx *gin.Context) {
 	}
 	ret := &DirCreateJSON{
 		BaseJSON: BaseJSON{Code: 201, CodeText: "Create ok"},
-		Dir:      dir,
+		Data: dirCreateData{
+			BucketName: bucketName,
+			DirPath:    dirPath,
+			DirName:    dirName,
+		},
+		Dir: dir,
 	}
 	ctx.JSON(201, ret)
+}
+
+// Delete controller
+// @Summary 删除空目录
+// @Description 删除一个空目录
+// @Tags Dir 目录
+// @Accept  json
+// @Produce  json
+// @Param   bucketname path string true "bucketname"
+// @Param   dirpath path string true "dirpath"
+// @Success 204 {string} string "No content"
+// @Failure 400 {object} controllers.BaseJSON
+// @Failure 404 {object} controllers.BaseJSON
+// @Security BasicAuth
+// @Security ApiKeyAuth
+// @Router /api/v1/dir/{bucketname}/{dirpath} [delete]
+func (ctl DirController) Delete(ctx *gin.Context) {
+
+	bucketName := ctx.Param("bucketname")
+	dirPath := ClearPath(ctx.Param("dirpath"))
+
+	user := ctl.user
+	bm := models.NewBucketManager(bucketName, user)
+	bucket, err := bm.GetUserBucket()
+	if err != nil {
+		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
+		return
+	}
+	if bucket == nil {
+		ctx.JSON(404, BaseJSONResponse(404, "bucket not found"))
+		return
+	}
+
+	tableName := bucket.GetObjsTableName()
+	manager := models.NewHarborObjectManager(tableName, dirPath, "")
+	dir, err := manager.GetCurDir()
+	if err != nil {
+		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
+		return
+	}
+	if dir == nil {
+		ctx.JSON(400, BaseJSONResponse(400, "the directory is not exists"))
+		return
+	}
+	if empty, err := manager.IsCurrentDirEmpty(); err != nil {
+		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
+		return
+	} else if !empty {
+		ctx.JSON(400, BaseJSONResponse(400, "the directory is not empty"))
+		return
+	}
+
+	if err := manager.DeleteDir(dir); err != nil {
+		ctx.JSON(500, BaseJSONResponse(500, "error when delete directory"))
+		return
+	}
+
+	ctx.JSON(204, nil)
 }

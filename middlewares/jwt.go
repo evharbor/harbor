@@ -114,7 +114,8 @@ func JWTAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 }
 
 // jwtLoginHandler API document
-// @Description jwt login handler
+// @Summary 认证获取jwt
+// @Description jwt login
 // @Tags jwt
 // @Accept  json
 // @Produce  json
@@ -128,7 +129,8 @@ func JWTAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 func jwtLoginHandler() {}
 
 // jwtRefreshHandler API document
-// @Description jwt refresh handler
+// @Summary 刷新jwt
+// @Description jwt refresh
 // @Tags jwt
 // @Accept  json
 // @Accept  application/x-www-form-urlencoded

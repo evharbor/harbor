@@ -324,6 +324,47 @@ func (m HarborObjectManager) GetObjectsQuery() (query *gorm.DB, err error) {
 	return db.Order("id desc").Where("did = ?", did), nil
 }
 
+// GetCurrentCount return count of subdir and objects under current dir
+func (m HarborObjectManager) GetCurrentCount() (count int64, err error) {
+
+	db := m.GetDB()
+	did, e := m.GetCurDirID()
+	if e != nil {
+		err = e
+		return
+	}
+
+	err = db.Where("did = ?", did).Count(&count).Error
+	return
+}
+
+// IsCurrentDirEmpty Check whether the current directory is empty
+func (m HarborObjectManager) IsCurrentDirEmpty() (bool, error) {
+
+	count, err := m.GetCurrentCount()
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+// DeleteDir delete a dir
+func (m HarborObjectManager) DeleteDir(dir *HarborObject) error {
+
+	db := m.GetDB()
+	if r := db.Delete(dir); r.Error != nil {
+		if r.RecordNotFound() {
+			return nil
+		}
+		return errors.New(r.Error.Error())
+	}
+
+	return nil
+}
+
 // BucketManager manage buckets
 type BucketManager struct {
 	Manager
