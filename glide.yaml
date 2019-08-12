@@ -1,0 +1,21 @@
+package: harbor
+import:
+- package: github.com/alecthomas/template
+- package: github.com/dgrijalva/jwt-go
+  version: v3.2.0
+- package: github.com/flosch/pongo2
+  version: v3.0
+- package: github.com/gin-gonic/gin
+  version: v1.4.0
+- package: github.com/jinzhu/gorm
+  version: v1.9.10
+  subpackages:
+  - dialects/mysql
+- package: github.com/spf13/viper
+  version: v1.4.0
+- package: github.com/swaggo/files
+- package: github.com/swaggo/gin-swagger
+  version: v1.2.0
+- package: github.com/swaggo/swag
+  version: v1.6.2
+- package: golang.org/x/crypto/pbkdf2

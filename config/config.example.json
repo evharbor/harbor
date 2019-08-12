@@ -1,5 +1,6 @@
 {
     "debug":"true",
+    "secret_key":"tbf1k*ax#48#^_qzr-c&07&z9+8j68=x41w5kgzv^wsv7=ax=v",
     "databases":[
         {
             "alias":"default",

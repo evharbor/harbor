@@ -9,20 +9,21 @@ import (
 
 // DBConfig database config struct
 type DBConfig struct {
-	Alias    string `json:"alias"`
-	Engine   string `json:"engine"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Name     string `json:"name"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Charset  string `json:"charset"`
+	Alias    string `mapstructure:"alias"`
+	Engine   string `mapstructure:"engine"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Name     string `mapstructure:"name"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Charset  string `mapstructure:"charset"`
 }
 
 // Config struct
 type Config struct {
-	Debug     bool       `json:"debug"`
-	Databases []DBConfig `json:"databases"` //database configs
+	Debug     bool       `mapstructure:"debug"`
+	SecretKey string     `mapstructure:"secret_key"`
+	Databases []DBConfig `mapstructure:"databases"` //database configs
 	BaseDir   string
 }
 

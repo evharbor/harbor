@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"harbor/config"
 	"harbor/database"
 	"harbor/middlewares/jwt"
 	"harbor/models"
@@ -56,10 +57,13 @@ func jwtPayloadFunc(data interface{}) jwt.MapClaims {
 // JWTAuthMiddleware return jwt auth middleware
 func JWTAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 
+	configs := config.GetConfigs()
+	secretKey := configs.SecretKey
+
 	// the jwt middleware
 	return jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "",
-		Key:         []byte("secret key"),
+		Key:         []byte(secretKey),
 		Timeout:     24 * time.Hour,
 		MaxRefresh:  7 * 24 * time.Hour,
 		IdentityKey: identityKey,
