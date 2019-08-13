@@ -45,6 +45,7 @@ func (m *Manager) getTableName() string {
 func (m *Manager) BeginTransaction() {
 
 	m.isInTransaction = true
+	m.tx = nil
 	m.GetDB()
 }
 
@@ -269,6 +270,24 @@ func (m HarborObjectManager) GetObjExists() (obj *HarborObject, err error) {
 	return
 }
 
+// CreatObject create a new HarborObject
+// return:
+//		obj, nil: success
+//		nil, error: have a error
+func (m HarborObjectManager) CreatObject() (obj *HarborObject, err error) {
+
+	obj = NewHarborObjectDefault()
+	obj.PathName = m.GetObjPathName()
+	obj.Name = m.ObjName
+	obj.FileOrDir = true
+	db := m.GetDB()
+	if err = db.Create(obj).Error; err != nil {
+		obj = nil
+		return
+	}
+	return
+}
+
 // GetObjOrCreat return a HarborObject or create one
 // return:
 //		obj, true: not exists and create one
@@ -279,25 +298,18 @@ func (m HarborObjectManager) GetObjOrCreat() (obj *HarborObject, created bool) {
 	obj = nil
 	created = false
 
-	object, err := m.GetObjExists()
-	if err != nil {
+	if object, err := m.GetObjExists(); err != nil {
 		return
-	}
-	if object != nil {
+	} else if object != nil {
 		obj = object
 		return
 	}
 
-	obj = NewHarborObjectDefault()
-	obj.PathName = m.GetObjPathName()
-	obj.Name = m.ObjName
-	obj.FileOrDir = true
-	db := m.GetDB()
-	// tableName := m.getTableName()
-	if err := db.Create(obj).Error; err != nil {
-		obj = nil
+	object, err := m.CreatObject()
+	if err != nil {
 		return
 	}
+	obj = object
 	created = true
 	return
 }
@@ -310,6 +322,26 @@ func (m HarborObjectManager) SaveObject(obj *HarborObject) error {
 		return errors.New("failed to update object's metadata")
 	}
 	return nil
+}
+
+// DeleteObject delete a object
+func (m HarborObjectManager) DeleteObject(obj *HarborObject) error {
+
+	db := m.GetDB()
+	if r := db.Delete(obj); r.Error != nil {
+		if r.RecordNotFound() {
+			return nil
+		}
+		return errors.New(r.Error.Error())
+	}
+
+	return nil
+}
+
+// DeleteDir delete a dir
+func (m HarborObjectManager) DeleteDir(dir *HarborObject) error {
+
+	return m.DeleteObject(dir)
 }
 
 // GetObjectsQuery return a gorm.DB that select all objs or subdirs under current dir
@@ -349,20 +381,6 @@ func (m HarborObjectManager) IsCurrentDirEmpty() (bool, error) {
 		return false, nil
 	}
 	return true, nil
-}
-
-// DeleteDir delete a dir
-func (m HarborObjectManager) DeleteDir(dir *HarborObject) error {
-
-	db := m.GetDB()
-	if r := db.Delete(dir); r.Error != nil {
-		if r.RecordNotFound() {
-			return nil
-		}
-		return errors.New(r.Error.Error())
-	}
-
-	return nil
 }
 
 // BucketManager manage buckets

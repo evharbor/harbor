@@ -101,6 +101,15 @@ func (ctl DirController) Get(ctx *gin.Context) {
 		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
 		return
 	}
+	// all objects under it is public if bucket is public
+	if bucket.IsPublic() {
+		for i := 0; i < len(objs); i++ {
+			if objs[i].IsFile() {
+				objs[i].AccessPermission = "公有"
+			}
+		}
+	}
+
 	current, final := paginater.CurrentAndFinalPageNumber()
 	bj := BaseJSONResponse(200, "ok")
 	data := DirListJSON{

@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -125,23 +126,34 @@ func (b *Bucket) UpdateModyfiedTime() {
 	b.ModifiedTime = JSONTimeNow()
 }
 
+// IsPublic return true if bucket is public access permission
+func (b *Bucket) IsPublic() bool {
+
+	if uint8(b.AccessPermission) == BucketPublic {
+		return true
+	}
+
+	return false
+}
+
 // HarborObject 对象结构
 type HarborObject struct {
-	ID              uint64       `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`
-	PathName        string       `gorm:"column:na;not null" json:"na"`                                             //全路径文件名或目录名
-	FileOrDir       bool         `gorm:"column:fod;index:idx_fod_did;not null" json:"fod"`                         //True==文件，False==目录
-	ParentID        uint64       `gorm:"column:did;index:idx_fod_did;unique_index:udx_did_name;not null" json:"-"` //父节点id
-	Name            string       `gorm:"type:varchar(255);unique_index:udx_did_name;not null" json:"name"`         //文件名或目录名
-	Size            uint64       `gorm:"cloumn:si;not null" json:"si"`                                             //文件大小, 字节数
-	UploadTime      TypeJSONTime `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
-	UpdateTime      TypeJSONTime `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
-	DownloadCount   uint64       `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0
-	IsShared        bool         `gorm:"column:sh;not null" json:"sh"`                                             //为True，则文件可共享，为False，则文件不能共享
-	ShareCode       string       `gorm:"column:shp;type:varchar(10);not null" json:"-"`                            //该文件的共享密码，目录时为空
-	IsSharedLimit   bool         `gorm:"column:stl;default:true;not null" json:"-"`                                //True: 文件有共享时间限制; False: 则文件无共享时间限制
-	SharedStartTime time.Time    `gorm:"column:sst;not null" json:"-"`                                             //该文件的共享起始时间
-	SharedEndTime   time.Time    `gorm:"column:set;not null" json:"-"`                                             //该文件的共享终止时间
-	SoftDeleted     bool         `gorm:"column:sds;not null" json:"-"`                                             //软删除,True->删除状态
+	ID               uint64       `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`
+	PathName         string       `gorm:"column:na;not null" json:"na"`                                             //全路径文件名或目录名
+	FileOrDir        bool         `gorm:"column:fod;index:idx_fod_did;not null" json:"fod"`                         //True==文件，False==目录
+	ParentID         uint64       `gorm:"column:did;index:idx_fod_did;unique_index:udx_did_name;not null" json:"-"` //父节点id
+	Name             string       `gorm:"type:varchar(255);unique_index:udx_did_name;not null" json:"name"`         //文件名或目录名
+	Size             uint64       `gorm:"cloumn:si;not null" json:"si"`                                             //文件大小, 字节数
+	UploadTime       TypeJSONTime `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
+	UpdateTime       TypeJSONTime `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
+	DownloadCount    uint64       `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0
+	IsShared         bool         `gorm:"column:sh;not null" json:"sh"`                                             //为True，则文件可共享，为False，则文件不能共享
+	ShareCode        string       `gorm:"column:shp;type:varchar(10);not null" json:"-"`                            //该文件的共享密码，目录时为空
+	IsSharedLimit    bool         `gorm:"column:stl;default:true;not null" json:"-"`                                //True: 文件有共享时间限制; False: 则文件无共享时间限制
+	SharedStartTime  time.Time    `gorm:"column:sst;not null" json:"-"`                                             //该文件的共享起始时间
+	SharedEndTime    time.Time    `gorm:"column:set;not null" json:"-"`                                             //该文件的共享终止时间
+	SoftDeleted      bool         `gorm:"column:sds;not null" json:"-"`                                             //软删除,True->删除状态
+	AccessPermission string       `gorm:"-" json:"access_permission"`
 }
 
 // NewHarborObject create a harbor object
@@ -168,6 +180,23 @@ func NewHarborDirDefault() *HarborObject {
 		UpdateTime: now,
 		FileOrDir:  false,
 	}
+}
+
+// MarshalJSON on TypeBucketPermission convert uint8 to string
+func (ho *HarborObject) MarshalJSON() ([]byte, error) {
+
+	type Alias HarborObject
+
+	if ho.AccessPermission != "公有" {
+		if ho.IsFile() {
+			if ho.IsSharedAndInSharedTime() {
+				ho.AccessPermission = "公有"
+			} else {
+				ho.AccessPermission = "私有"
+			}
+		}
+	}
+	return json.Marshal((*Alias)(ho))
 }
 
 // SetSizeOnlyIncrease set HarborObject size only when input large than current size
@@ -203,4 +232,55 @@ func (ho *HarborObject) GetObjKey(b *Bucket) string {
 func (ho *HarborObject) IsFile() bool {
 
 	return ho.FileOrDir
+}
+
+// SetShared share object
+// :param sh: 共享(True)或私有(False)
+// :param days: 共享天数，0表示永久共享, <0表示不共享
+func (ho *HarborObject) SetShared(share bool, days int) {
+
+	if share {
+		ho.IsShared = true // 共享
+		now := time.Now()
+		ho.SharedStartTime = now // 共享时间
+		if days == 0 {
+			ho.IsSharedLimit = false // 永久共享,没有共享时间限制
+		} else if days < 0 {
+			ho.IsShared = false // 私有
+		} else {
+			ho.IsSharedLimit = true                    // 有共享时间限制
+			ho.SharedEndTime = now.AddDate(0, 0, days) // 共享终止时间
+		}
+	} else {
+		ho.IsShared = false // 私有
+	}
+}
+
+// IsSharedAndInSharedTime return true if the object is shared and within the effective sharing time
+func (ho HarborObject) IsSharedAndInSharedTime() bool {
+
+	// 对象是否是分享的
+	if !ho.IsShared {
+		return false
+	}
+
+	// 是否有分享时间限制
+	if !ho.IsSharedLimit {
+		return true
+	}
+
+	// 检查是否已过共享终止时间
+	if ho.IsNowAfterSharedEndTime() {
+		return false
+	}
+
+	return true
+}
+
+// IsNowAfterSharedEndTime return true if now after HarborObject's shared end time
+// :return: True(已过共享终止时间)，False(未超时)
+func (ho HarborObject) IsNowAfterSharedEndTime() bool {
+
+	now := time.Now()
+	return now.After(ho.SharedEndTime)
 }

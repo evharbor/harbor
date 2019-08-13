@@ -128,6 +128,38 @@ func AuthUserOrAbort(ctx *gin.Context) *models.UserProfile {
 	return nil
 }
 
+// GetBoolParamOrDefault return param's value by name or a error if exists, otherwise return default
+func GetBoolParamOrDefault(ctx *gin.Context, name string, dft bool) (bool, error) {
+
+	value, exists := ctx.GetQuery(name)
+	if !exists {
+		return dft, nil
+	}
+	ok, err := strconv.ParseBool(value)
+	if err != nil {
+		s := fmt.Sprintf("value of query param %s is invalid", name)
+		return false, errors.New(s)
+	}
+
+	return ok, nil
+}
+
+// GetIntParamOrDefault return param's value by name or a error if exists, otherwise return default
+func GetIntParamOrDefault(ctx *gin.Context, name string, dft int64) (int64, error) {
+
+	value, exists := ctx.GetQuery(name)
+	if !exists {
+		return dft, nil
+	}
+	offset, err := strconv.ParseInt(value, 10, 0)
+	if err != nil {
+		s := fmt.Sprintf("value of query param %s is invalid", name)
+		return 0, errors.New(s)
+	}
+
+	return offset, nil
+}
+
 // GetUintParamOrDefault return param's value by name or a error if exists, otherwise return default
 func GetUintParamOrDefault(ctx *gin.Context, name string, dft uint64) (uint64, error) {
 
