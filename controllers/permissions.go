@@ -43,3 +43,11 @@ func IsStaffSuperUser(user *models.UserProfile) bool {
 	}
 	return user.IsSuper() && user.IsStaffUser()
 }
+
+// IsAppSuperOrSuperUser check whether has super or third app super user permission
+func IsAppSuperOrSuperUser(user *models.UserProfile) bool {
+	if !IsAuthenticatedUser(user) {
+		return false
+	}
+	return user.IsSuper() || user.IsAppSuperUser()
+}

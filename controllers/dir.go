@@ -101,12 +101,15 @@ func (ctl DirController) Get(ctx *gin.Context) {
 		ctx.JSON(500, BaseJSONResponse(500, err.Error()))
 		return
 	}
-	// all objects under it is public if bucket is public
-	if bucket.IsPublic() {
-		for i := 0; i < len(objs); i++ {
-			if objs[i].IsFile() {
+	// all objects under it is public if bucket is public, set object download url
+	for i := 0; i < len(objs); i++ {
+		if objs[i].IsFile() {
+			if bucket.IsPublic() {
 				objs[i].AccessPermission = "公有"
 			}
+			dPath := URLPathJoin([]string{"obs", bucket.Name, objs[i].PathName})
+			dURL := ctl.buildAbsoluteURI(ctx, dPath, nil)
+			objs[i].DownloadURL = dURL
 		}
 	}
 

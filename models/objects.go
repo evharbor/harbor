@@ -147,13 +147,14 @@ type HarborObject struct {
 	UploadTime       TypeJSONTime `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
 	UpdateTime       TypeJSONTime `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
 	DownloadCount    uint64       `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0
-	IsShared         bool         `gorm:"column:sh;not null" json:"sh"`                                             //为True，则文件可共享，为False，则文件不能共享
+	IsShared         bool         `gorm:"column:sh;not null" json:"-"`                                              //为True，则文件可共享，为False，则文件不能共享
 	ShareCode        string       `gorm:"column:shp;type:varchar(10);not null" json:"-"`                            //该文件的共享密码，目录时为空
 	IsSharedLimit    bool         `gorm:"column:stl;default:true;not null" json:"-"`                                //True: 文件有共享时间限制; False: 则文件无共享时间限制
 	SharedStartTime  time.Time    `gorm:"column:sst;not null" json:"-"`                                             //该文件的共享起始时间
 	SharedEndTime    time.Time    `gorm:"column:set;not null" json:"-"`                                             //该文件的共享终止时间
 	SoftDeleted      bool         `gorm:"column:sds;not null" json:"-"`                                             //软删除,True->删除状态
 	AccessPermission string       `gorm:"-" json:"access_permission"`
+	DownloadURL      string       `gorm:"-" json:"download_url"`
 }
 
 // NewHarborObject create a harbor object

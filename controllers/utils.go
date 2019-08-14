@@ -219,3 +219,18 @@ func GetOffsetSizeParam(ctx *gin.Context) (offset, size uint64, err error) {
 
 	return
 }
+
+// URLPathJoin return url path
+// return:
+//		{"a", "b", "c"} 		-> 	"a/b/c"
+//		{"a", "b/", "/c"} 		-> 	"a/b/c"
+//		{"a", "", "b", "/c"} 	-> 	"a/b/c"
+func URLPathJoin(slice []string) string {
+	a := []string{}
+	for _, value := range slice {
+		if v := strings.Trim(value, "/"); v != "" {
+			a = append(a, value)
+		}
+	}
+	return strings.Join(a, "/")
+}

@@ -80,6 +80,30 @@ definitions:
       previous:
         type: string
     type: object
+  controllers.ObjMetadataJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      data:
+        $ref: '#/definitions/models.HarborObject'
+        type: object
+    type: object
+  controllers.ObjMoveJSON:
+    properties:
+      bucket_name:
+        type: string
+      code:
+        type: integer
+      code_text:
+        type: string
+      dir_path:
+        type: string
+      obj:
+        $ref: '#/definitions/models.HarborObject'
+        type: object
+    type: object
   controllers.PageNumberInfo:
     properties:
       current:
@@ -242,6 +266,8 @@ definitions:
       dlc:
         description: 该文件的下载次数，目录时dlc为0
         type: integer
+      download_url:
+        type: string
       fod:
         description: True==文件，False==目录
         type: boolean
@@ -253,9 +279,6 @@ definitions:
       name:
         description: 文件名或目录名
         type: string
-      sh:
-        description: 为True，则文件可共享，为False，则文件不能共享
-        type: boolean
       si:
         description: 文件大小, 字节数
         type: integer
@@ -722,6 +745,97 @@ paths:
       summary: 认证获取jwt
       tags:
       - jwt
+  /api/v1/metadata/{bucketname}/{path}:
+    get:
+      consumes:
+      - application/json
+      description: 通过绝对路径获取目录或对象元数据
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: objpath
+        in: path
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ObjMetadataJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 获取目录或对象元数据
+      tags:
+      - metadata元数据
+  /api/v1/move/{bucketname}/{objpath}:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        移动或重命名一个对象
+        参数move_to指定对象移动的目标路径（bucket桶下的目录路径），/或空字符串表示桶下根目录；参数rename指定重命名对象的新名称；
+        请求时至少提交其中一个参数，亦可同时提交两个参数；只提交参数move_to只移动对象，只提交参数rename只重命名对象；
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: objpath
+        in: path
+        name: objpath
+        required: true
+        type: string
+      - description: path for move
+        in: query
+        name: move_to
+        type: string
+      - description: rename object
+        in: query
+        name: rename
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ObjMoveJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 对象移动或重命名
+      tags:
+      - move移动或重命名
   /api/v1/obj/{bucketname}/{objpath}:
     delete:
       consumes:

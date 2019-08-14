@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"harbor/models"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -154,6 +155,34 @@ func (ctl *Controller) Dispatch(ctx *gin.Context) {
 	default:
 		MethodNotAllowedJSON(ctx)
 	}
+}
+
+func (ctl *Controller) buildAbsoluteURI(ctx *gin.Context, path string, querys map[string]string) string {
+
+	req := ctx.Request
+	u := *(req.URL) // deep copy
+	q := url.Values{}
+	for key, value := range querys {
+		q.Set(key, value)
+	}
+	u.RawQuery = q.Encode()
+
+	if u.Host == "" {
+		u.Host = req.Host
+	}
+
+	if u.Scheme == "" {
+		if req.ProtoMajor == 1 {
+			u.Scheme = "http"
+		} else {
+			u.Scheme = "https"
+		}
+	}
+
+	u.Path = path
+	u.RawPath = ""
+
+	return u.String()
 }
 
 // MethodNotAllowedJSON json response when request not allowed method

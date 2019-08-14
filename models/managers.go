@@ -114,6 +114,9 @@ type HarborObjectManager struct {
 // NewHarborObjectManager return manager for manage HarborObject
 func NewHarborObjectManager(tableName, dirPath, objName string) *HarborObjectManager {
 
+	if dirPath == "/" {
+		dirPath = ""
+	}
 	return &HarborObjectManager{
 		Manager: *NewManager("objs", tableName),
 		DirPath: dirPath,
@@ -239,25 +242,20 @@ func (m *HarborObjectManager) ResetObjName(name string) {
 	m.ObjName = name
 }
 
-// GetObjExists return HarborObject if exists
+// GetObjOrDirByDidName return HarborObject or dir filter by did and name
 // return:
 //		obj, nil: exists and no error
 //		nil, nil: not exists and no error
 //		nil, error: have a error
-func (m HarborObjectManager) GetObjExists() (obj *HarborObject, err error) {
+func (m HarborObjectManager) GetObjOrDirByDidName(did uint64, name string) (obj *HarborObject, err error) {
 
 	err = nil
 	obj = nil
 
-	// tableName := m.getTableName()
 	object := NewHarborObject()
 	db := m.GetDB()
-	did, e := m.GetCurDirID()
-	if e != nil {
-		err = e
-		return
-	}
-	if r := db.Where("did = ? and name = ? AND fod = ?", did, m.ObjName, true).First(object); r.Error != nil {
+
+	if r := db.Where("did = ? and name = ?", did, name).First(object); r.Error != nil {
 		if r.RecordNotFound() {
 			return
 		}
@@ -267,6 +265,46 @@ func (m HarborObjectManager) GetObjExists() (obj *HarborObject, err error) {
 	}
 
 	obj = object
+	return
+}
+
+// GetObjOrDirExists return HarborObject or dir if exists
+// return:
+//		obj, nil: exists and no error
+//		nil, nil: not exists and no error
+//		nil, error: have a error
+func (m HarborObjectManager) GetObjOrDirExists() (obj *HarborObject, err error) {
+
+	did, e := m.GetCurDirID()
+	if e != nil {
+		err = e
+		return
+	}
+
+	obj, err = m.GetObjOrDirByDidName(did, m.ObjName)
+
+	return
+}
+
+// GetObjExists return HarborObject if exists
+// return:
+//		obj, nil: exists and no error
+//		nil, nil: not exists and no error
+//		nil, error: have a error
+func (m HarborObjectManager) GetObjExists() (obj *HarborObject, err error) {
+
+	obj, err = m.GetObjOrDirExists()
+	if err != nil {
+		return
+	}
+	if obj == nil {
+		return
+	}
+	if !obj.IsFile() {
+		obj = nil
+		return
+	}
+
 	return
 }
 

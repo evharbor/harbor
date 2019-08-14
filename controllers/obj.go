@@ -48,14 +48,6 @@ func (ctl ObjController) GetPermissions(ctx *gin.Context) []PermissionFunc {
 	}
 }
 
-// ObjGetInfoJSON object info json struct
-// type ObjGetInfoJSON struct {
-// 	BaseJSON
-// 	BucketName string               `json:"bucket_name"`
-// 	DirPath    string               `json:"dir_path"`
-// 	Obj        *models.HarborObject `json:"obj"`
-// }
-
 // Get handler for get method
 // @Summary 下载对象
 // @Description 通过文件对象绝对路径,下载文件对象,可通过参数获取文件对象详细信息，或者自定义读取对象数据块

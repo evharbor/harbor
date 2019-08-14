@@ -662,6 +662,142 @@
                 }
             }
         },
+        "/api/v1/metadata/{bucketname}/{path}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "通过绝对路径获取目录或对象元数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "metadata元数据"
+                ],
+                "summary": "获取目录或对象元数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bucketname",
+                        "name": "bucketname",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "objpath",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.ObjMetadataJSON"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/move/{bucketname}/{objpath}": {
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "移动或重命名一个对象\n参数move_to指定对象移动的目标路径（bucket桶下的目录路径），/或空字符串表示桶下根目录；参数rename指定重命名对象的新名称；\n请求时至少提交其中一个参数，亦可同时提交两个参数；只提交参数move_to只移动对象，只提交参数rename只重命名对象；",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "move移动或重命名"
+                ],
+                "summary": "对象移动或重命名",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bucketname",
+                        "name": "bucketname",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "objpath",
+                        "name": "objpath",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "path for move",
+                        "name": "move_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "rename object",
+                        "name": "rename",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.ObjMoveJSON"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/controllers.BaseJSON"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/obj/{bucketname}/{objpath}": {
             "get": {
                 "security": [
@@ -1425,6 +1561,42 @@
                 }
             }
         },
+        "controllers.ObjMetadataJSON": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "code_text": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "$ref": "#/definitions/models.HarborObject"
+                }
+            }
+        },
+        "controllers.ObjMoveJSON": {
+            "type": "object",
+            "properties": {
+                "bucket_name": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "integer"
+                },
+                "code_text": {
+                    "type": "string"
+                },
+                "dir_path": {
+                    "type": "string"
+                },
+                "obj": {
+                    "type": "object",
+                    "$ref": "#/definitions/models.HarborObject"
+                }
+            }
+        },
         "controllers.PageNumberInfo": {
             "type": "object",
             "properties": {
@@ -1670,6 +1842,9 @@
                     "description": "该文件的下载次数，目录时dlc为0",
                     "type": "integer"
                 },
+                "download_url": {
+                    "type": "string"
+                },
                 "fod": {
                     "description": "True==文件，False==目录",
                     "type": "boolean"
@@ -1684,10 +1859,6 @@
                 "name": {
                     "description": "文件名或目录名",
                     "type": "string"
-                },
-                "sh": {
-                    "description": "为True，则文件可共享，为False，则文件不能共享",
-                    "type": "boolean"
                 },
                 "si": {
                     "description": "文件大小, 字节数",
