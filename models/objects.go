@@ -136,6 +136,19 @@ func (b *Bucket) IsPublic() bool {
 	return false
 }
 
+// IsBelongToUser return true if bucket belong to input user
+func (b *Bucket) IsBelongToUser(user *UserProfile) bool {
+
+	if user == nil {
+		return false
+	}
+	if b.UserID == user.ID {
+		return true
+	}
+
+	return false
+}
+
 // HarborObject 对象结构
 type HarborObject struct {
 	ID               uint64       `gorm:"PRIMARY_KEY;AUTO_INCREMENT;not null" json:"id"`

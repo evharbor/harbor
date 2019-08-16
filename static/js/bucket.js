@@ -38,12 +38,12 @@
     //
     //构建对象info api
     //错误返回空字符串
-    function build_obj_info_api(params={bucket_name: '', dir_path: '', filename: ''}){
-        let detail_api = build_obj_detail_api(params);
-        if (!detail_api)
-            return '';
-        return detail_api + '?info=true';
-    }
+    // function build_obj_info_api(params={bucket_name: '', dir_path: '', filename: ''}){
+    //     let detail_api = build_obj_detail_api(params);
+    //     if (!detail_api)
+    //         return '';
+    //     return detail_api + '?info=true';
+    // }
 
     //
     //构造文件对象上传url
@@ -130,6 +130,24 @@
         let param_str = encode_params(params);
         let api = get_move_base_api() + obj_path + '/?' + param_str;
         return build_url_with_domain_name(api);
+    }
+
+        //
+    // 对象metadata base api
+    //
+    function get_metadata_base_api() {
+        return "/api/v1/metadata/";
+    }
+
+    //
+    //构建对象元数据api
+    //错误返回空字符串
+    function build_metadata_api(params={bucket_name: '', dir_path: '', filename: ''}){
+        if (!params.hasOwnProperty('bucket_name') || !params.hasOwnProperty('dir_path') || !params.hasOwnProperty('filename'))
+            return '';
+
+        let path = encode_paths([params.bucket_name, params.dir_path, params.filename]);
+        return get_metadata_base_api() + path + '/';
     }
 
     /**
@@ -1094,7 +1112,7 @@
         e.preventDefault();
         let obj = get_bucket_name_and_cur_path();
         obj.filename = $(this).text();
-        let url = build_obj_info_api(obj);
+        let url = build_metadata_api(obj);
         url = build_url_with_domain_name(url);
         get_file_obj_info_and_render(url);
     });
@@ -1347,7 +1365,7 @@
         let cur_url = build_obj_detail_url(params);
 
         if (cur_url === obj_url){
-            let info_url = build_obj_info_api(params);
+            let info_url = build_url_with_domain_name(build_metadata_api(params));
             get_file_info_and_list_item_render(info_url, render_bucket_file_item);
         }
     }

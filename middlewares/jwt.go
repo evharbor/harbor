@@ -98,7 +98,7 @@ func JWTAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 		// - "query:<name>"
 		// - "cookie:<name>"
 		// - "param:<name>"
-		TokenLookup: "header: Authorization",
+		TokenLookup: "header: Authorization, query: jwt",
 		// TokenLookup: "header: Authorization, query: jwt, cookie: jwt",
 		// TokenLookup: "query:token",
 		// TokenLookup: "cookie:token",

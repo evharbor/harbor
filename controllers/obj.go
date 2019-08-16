@@ -49,7 +49,7 @@ func (ctl ObjController) GetPermissions(ctx *gin.Context) []PermissionFunc {
 }
 
 // Get handler for get method
-// @Summary 下载对象
+// @Summary 分片下载对象
 // @Description 通过文件对象绝对路径,下载文件对象,可通过参数获取文件对象详细信息，或者自定义读取对象数据块
 // @Description         * 注：
 // @Description         1. offset && size(最大20MB，否则400错误) 参数校验失败时返回状态码400和对应参数错误信息，无误时，返回bytes数据流
@@ -122,9 +122,12 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 		ctx.Header("evob_obj_size", filesize)
 		ctx.Header("Content-Length", chunksize)
 		ctx.Data(200, "application/octet-stream", data)
+		if offset == 0 {
+			manager.IncreaseDownloadCount(hobj) // 下载次数+1
+		}
 		return
 	}
-	stepFunc, err := fs.StepWriteFunc()
+	stepFunc, err := fs.StepWriteFunc(0, fs.FileSize()-1)
 	if err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, "error read object"))
 		return
@@ -136,6 +139,14 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 	ctx.Header("Content-Disposition", fmt.Sprintf("attachment;filename*=utf-8''%s", filename)) // 注意filename 这个是下载后的名字
 	ctx.Header("evob_obj_size", filesize)
 	ctx.Stream(stepFunc)
+
+	manager.IncreaseDownloadCount(hobj) // 下载次数+1
+	return
+}
+
+type objPostJSON struct {
+	BaseJSON
+	Created bool `json:"created"`
 }
 
 // Post controller
@@ -163,7 +174,7 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 // @Param   chunk formData file true "chunk"
 // @Param   chunk_offset formData int64 true "chunk_offset"
 // @Param   chunk_size formData int64 true "chunk_size"
-// @Success 200 {object} controllers.BaseJSON
+// @Success 200 {object} controllers.objPostJSON
 // @Failure 400 {object} controllers.BaseJSON
 // @Failure 404 {object} controllers.BaseJSON
 // @Security BasicAuth
@@ -171,7 +182,7 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 // @Router /api/v1/obj/{bucketname}/{objpath} [post]
 func (ctl ObjController) Post(ctx *gin.Context) {
 
-	var reset bool
+	var reset, created bool
 	var err error
 	var hobj *models.HarborObject
 
@@ -246,6 +257,7 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 			ctx.JSON(500, BaseJSONResponse(500, "create harbor object metadata error"))
 			return
 		}
+		created = true
 	}
 
 	hobj.SetSizeOnlyIncrease(uint64(offset + size))
@@ -271,7 +283,10 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 		ctx.JSON(500, BaseJSONResponse(500, "upload fialed:"+err.Error()))
 		return
 	}
-	ctx.JSON(200, BaseJSONResponse(200, "success to upload"))
+	ctx.JSON(200, &objPostJSON{
+		BaseJSON: *BaseJSONResponse(200, "success to upload"),
+		Created:  created,
+	})
 }
 
 // Patch controller
@@ -380,10 +395,21 @@ func (ctl ObjController) Delete(ctx *gin.Context) {
 		return
 	}
 
-	// delete
+	// delete object metadata
 	if err := manager.DeleteObject(hobj); err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, "delete object fialed:"+err.Error()))
 		return
+	}
+
+	// delete object data
+	objkey := hobj.GetObjKey(bucket)
+	fs := storages.NewFileStorage(objkey)
+	if err := fs.Delete(); err != nil {
+		// restore object metadata
+		if err := manager.InsertObject(hobj); err == nil {
+			ctx.JSON(500, BaseJSONResponse(500, "delete object fialed，can not remove object data"))
+			return
+		}
 	}
 
 	ctx.JSON(200, BaseJSONResponse(200, "success to delete object"))

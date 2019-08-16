@@ -39,7 +39,9 @@ func (ctl MetadataController) GetPermissions(ctx *gin.Context) []PermissionFunc 
 // ObjMetadataJSON object metadata json struct
 type ObjMetadataJSON struct {
 	BaseJSON
-	Data *models.HarborObject `json:"data"`
+	BucketName string               `json:"bucket_name"`
+	DirPath    string               `json:"dir_path"`
+	Data *models.HarborObject `json:"obj"`
 }
 
 // Get handler for get method
@@ -94,6 +96,8 @@ func (ctl MetadataController) Get(ctx *gin.Context) {
 
 	ctx.JSON(200, &ObjMetadataJSON{
 		BaseJSON: *BaseJSONResponse(200, "ok"),
+		BucketName: bucket.Name,
+		DirPath:    dirPath,
 		Data:     hobj,
 	})
 }

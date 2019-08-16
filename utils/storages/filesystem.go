@@ -50,7 +50,7 @@ func (fs FileStorage) WriteFile(offset int64, file *multipart.FileHeader) error 
 	defer inputFile.Close()
 
 	fileName := fs.GetFilename()
-	saveFile, err := os.Create(fileName)
+	saveFile, err := fs.OpenOrCreateFile(fileName)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (fs FileStorage) WriteFile(offset int64, file *multipart.FileHeader) error 
 		if err != nil {
 			return err
 		}
-		if s != offset {
+		if s != fileOffset {
 			return errors.New("seek文件偏移量错误")
 		}
 
@@ -88,11 +88,17 @@ func (fs FileStorage) WriteFile(offset int64, file *multipart.FileHeader) error 
 	return nil
 }
 
+// OpenOrCreateFile open a file or create it if it is not exists
+func (fs FileStorage) OpenOrCreateFile(filename string) (*os.File, error) {
+
+	return os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
+}
+
 // Write write bytes to a file
 func (fs FileStorage) Write(offset int64, data []byte) error {
 
 	fileName := fs.GetFilename()
-	saveFile, err := os.Create(fileName)
+	saveFile, err := fs.OpenOrCreateFile(fileName)
 	if err != nil {
 		return err
 	}
@@ -170,24 +176,23 @@ func (fs FileStorage) FileSize() int64 {
 func (fs FileStorage) Delete() error {
 
 	fileName := fs.GetFilename()
-	return os.Remove(fileName)
+	err := os.Remove(fileName)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // StepWriteFunc return
-func (fs FileStorage) StepWriteFunc() (StepWriteFunc, error) {
+func (fs FileStorage) StepWriteFunc(offset, end int64) (StepWriteFunc, error) {
 
-	var fileSize int64
 	fileName := fs.GetFilename()
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	fileSize = fileInfo.Size()
-	sr, err := NewFileStepRead(file, fileSize, 0, 5*1024*1024)
+
+	sr, err := NewFileStepRead(file, offset, end, 5*1024*1024)
 	if err != nil {
 		return nil, err
 	}
@@ -206,15 +211,18 @@ type Stepwisable interface {
 
 // FileStepRead 分步读文件
 type FileStepRead struct {
-	Offset   int64
-	SizeStep uint
-	Size     int64
+	offset   int64 // read offset
+	start    int64 // read start offset
+	end      int64 // read end offset(containing current offset)
+	sizeStep uint  // read size per step
 	file     Stepwisable
 	buf      []byte
 }
 
 // NewFileStepRead return FileStepRead instance
-func NewFileStepRead(file Stepwisable, size, offset int64, sizeStep uint) (*FileStepRead, error) {
+func NewFileStepRead(file Stepwisable, start, end int64, sizeStep uint) (*FileStepRead, error) {
+
+	offset := start
 
 	// 文件偏移量设置
 	s, err := file.Seek(offset, os.SEEK_SET)
@@ -225,11 +233,16 @@ func NewFileStepRead(file Stepwisable, size, offset int64, sizeStep uint) (*File
 		return nil, errors.New("seek文件偏移量错误")
 	}
 
+	if start < 0 || start > end {
+		return nil, errors.New("参数start或end值无效")
+	}
+
 	return &FileStepRead{
 		file:     file,
-		Size:     size,
-		Offset:   offset,
-		SizeStep: sizeStep,
+		start:    start,
+		end:      end,
+		offset:   offset,
+		sizeStep: sizeStep,
 		buf:      make([]byte, sizeStep),
 	}, nil
 }
@@ -247,11 +260,23 @@ func (fsr *FileStepRead) StepWrite(w io.Writer) bool {
 		fsr.file.Close()
 		return false
 	}
-	writeSize, err := w.Write(fsr.buf[0:readSize])
+
+	// check whether out of Read Range
+	if end := fsr.end + 1; (fsr.offset + int64(readSize)) > end {
+		readSize = int(end - fsr.offset)
+	}
+
+	writeSize, err := w.Write(fsr.buf[0:readSize]) // slice不含结束下标
 	if err != nil {
 		return true
 	}
-	fsr.Offset += int64(writeSize)
+	// next read start offset
+	fsr.offset += int64(writeSize)
+	// read end
+	if fsr.offset > fsr.end {
+		fsr.file.Close()
+		return false
+	}
 	return true
 }
 

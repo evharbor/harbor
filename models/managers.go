@@ -362,6 +362,16 @@ func (m HarborObjectManager) SaveObject(obj *HarborObject) error {
 	return nil
 }
 
+// InsertObject create object to database
+func (m HarborObjectManager) InsertObject(obj *HarborObject) error {
+
+	db := m.GetDB()
+	if r := db.Create(&obj); r.Error != nil {
+		return errors.New("failed to create object's metadata")
+	}
+	return nil
+}
+
 // DeleteObject delete a object
 func (m HarborObjectManager) DeleteObject(obj *HarborObject) error {
 
@@ -380,6 +390,16 @@ func (m HarborObjectManager) DeleteObject(obj *HarborObject) error {
 func (m HarborObjectManager) DeleteDir(dir *HarborObject) error {
 
 	return m.DeleteObject(dir)
+}
+
+// IncreaseDownloadCount download count + 1
+func (m HarborObjectManager) IncreaseDownloadCount(obj *HarborObject) error {
+
+	db := m.GetDB()
+	if r := db.Where("id", obj.ID).Update("dlc", "dlc + 1"); r.Error != nil {
+		return errors.New("failed to update object's metadata")
+	}
+	return nil
 }
 
 // GetObjectsQuery return a gorm.DB that select all objs or subdirs under current dir
@@ -519,7 +539,8 @@ func (bm BucketManager) GetUserBucketByName(user *UserProfile, name string) (*Bu
 
 	bucket := &Bucket{}
 	db := bm.GetDB()
-	if r := db.Where("soft_delete = ?", false).Find(&bucket, Bucket{UserID: user.ID, Name: name}); r.Error != nil {
+
+	if r := db.Where("user_id = ? AND name = ? AND soft_delete = ?", user.ID, name, false).Find(&bucket); r.Error != nil {
 		if r.RecordNotFound() {
 			return nil, nil
 		}

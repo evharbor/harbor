@@ -31,4 +31,8 @@ func Urls(ng *gin.Engine) {
 		v1.Any("/metadata/:bucketname/*path", ctls.NewMetadataController().Init().Dispatch)
 		v1.Any("/move/:bucketname/*objpath", ctls.NewMoveController().Init().Dispatch)
 	}
+	obs := ng.Group("obs", jwtAuth.MiddlewareFunc())
+	{
+		obs.GET("/:bucketname/*objpath", ctls.NewDownloadController().Init().Dispatch)
+	}
 }

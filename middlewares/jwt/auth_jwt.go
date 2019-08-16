@@ -179,6 +179,9 @@ var (
 	// ErrEmptyBodyToken can be thrown if authing with a data in body, the token in body is empty
 	ErrEmptyBodyToken = errors.New("body token is empty")
 
+	// ErrNotFoundToken can be thrown if not found token
+	ErrNotFoundToken = errors.New("token not found")
+
 	// ErrInvalidSigningAlgorithm indicates signing algorithm is invalid, needs to be HS256, HS384, HS512, RS256, RS384 or RS512
 	ErrInvalidSigningAlgorithm = errors.New("invalid signing algorithm")
 
@@ -373,7 +376,7 @@ func (mw *GinJWTMiddleware) MiddlewareFunc() gin.HandlerFunc {
 
 func (mw *GinJWTMiddleware) middlewareImpl(c *gin.Context) {
 	claims, err := mw.GetClaimsFromJWT(c)
-	if mw.DoNothingIfNotJWTHeader && (err == ErrEmptyAuthHeader || err == ErrInvalidAuthHeader) {
+	if mw.DoNothingIfNotJWTHeader && (err == ErrNotFoundToken || err == ErrInvalidAuthHeader) {
 		return
 	}
 	if err != nil {
@@ -675,7 +678,7 @@ func (mw *GinJWTMiddleware) ParseToken(c *gin.Context) (*jwt.Token, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFoundToken
 	}
 
 	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {

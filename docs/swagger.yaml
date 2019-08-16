@@ -82,11 +82,15 @@ definitions:
     type: object
   controllers.ObjMetadataJSON:
     properties:
+      bucket_name:
+        type: string
       code:
         type: integer
       code_text:
         type: string
-      data:
+      dir_path:
+        type: string
+      obj:
         $ref: '#/definitions/models.HarborObject'
         type: object
     type: object
@@ -230,6 +234,15 @@ definitions:
         type: string
       dir_path:
         type: string
+    type: object
+  controllers.objPostJSON:
+    properties:
+      code:
+        type: integer
+      code_text:
+        type: string
+      created:
+        type: boolean
     type: object
   middlewares.JWTLoginForm:
     properties:
@@ -925,7 +938,7 @@ paths:
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
-      summary: 下载对象
+      summary: 分片下载对象
       tags:
       - object对象
     patch:
@@ -1026,7 +1039,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controllers.BaseJSON'
+            $ref: '#/definitions/controllers.objPostJSON'
             type: object
         "400":
           description: Bad Request
@@ -1239,6 +1252,67 @@ paths:
       summary: 修改用户信息
       tags:
       - user 用户
+  /obs/{bucketname}/{objpath}:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        浏览器端下载文件对象，公共文件对象或当前用户(如果用户登录了)文件对象下载，没有权限下载非公共文件对象或不属于当前用户文件对象
+        * 支持断点续传，通过HTTP头 Range和Content-Range
+        * 跨域访问和安全
+        跨域又需要传递token进行权限认证，我们推荐token通过header传递，不推荐在url中传递token,处理不当会增加token泄露等安全问题的风险。
+        我们支持token通过url参数传递，auth-token和jwt token两种token对应参数名称分别为token和jwt。出于安全考虑，请不要直接把token明文写到前端<a>标签href属性中，以防token泄密。请动态拼接token到url，比如如下方式：
+        $("xxx").on('click', function(e){
+        e.preventDefault();
+        let token = 从SessionStorage、LocalStorage、内存等等存放token的安全地方获取
+        let url = $(this).attr('href') + '?token=' + token; // auth-token
+        let url = $(this).attr('href') + '?jwt=' + token;   // jwt token
+        window.location.href = url;
+        }
+      parameters:
+      - description: bucketname
+        in: path
+        name: bucketname
+        required: true
+        type: string
+      - description: objpath
+        in: path
+        name: objpath
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: file
+          schema:
+            type: string
+        "206":
+          description: Partial Content
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+        "416":
+          description: Requested Range Not Satisfiable
+          schema:
+            $ref: '#/definitions/controllers.BaseJSON'
+            type: object
+      security:
+      - BasicAuth: []
+      - ApiKeyAuth: []
+      summary: 公共或私有对象下载
+      tags:
+      - 对象下载
   /user/register/:
     post:
       consumes:
