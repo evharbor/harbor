@@ -59,6 +59,7 @@ func main() {
 	db.AutoMigrate(&models.UserProfile{},
 		&models.HarborObject{},
 		&models.Bucket{},
+		&models.Token{},
 	)
 
 	app := gin.Default()

@@ -698,3 +698,89 @@ func (bm BucketManager) BucketRename(bucket *Bucket, rename string) error {
 	}
 	return nil
 }
+
+// TokenManager token manager
+type TokenManager struct {
+	Manager
+	User *UserProfile
+}
+
+// NewTokenManager return manager for manage token
+func NewTokenManager(user *UserProfile) *TokenManager {
+
+	tableName := Token{}.TableName()
+	return &TokenManager{
+		Manager: *NewManager("default", tableName),
+		User:    user,
+	}
+}
+
+// GetOrCreateToken return token if it exists,otherwise create one
+// return:
+//		token, true, nil
+//		token, false, nil
+//		nil, false, error
+func (m *TokenManager) GetOrCreateToken() (tk *Token, created bool, err error) {
+
+	token := Token{}
+	db := m.GetDB()
+	if r := db.Where("user_id = ?", m.User.ID).First(&token); r.Error != nil {
+		if !r.RecordNotFound() {
+			err = errors.New(r.Error.Error())
+			return
+		}
+
+		// create one
+		tk = NewToken(m.User)
+		err = m.CreateToken(tk)
+		if err != nil {
+			created = true
+		}
+		return
+	}
+	tk = &token
+	return
+}
+
+// CreateToken  create one token
+func (m *TokenManager) CreateToken(token *Token) error {
+
+	db := m.GetDB()
+	if r := db.Create(token); r.Error != nil {
+		return errors.New(r.Error.Error())
+
+	}
+
+	return nil
+}
+
+// DeleteToken remove token
+func (m *TokenManager) DeleteToken(token *Token) error {
+
+	db := m.GetDB()
+	if r := db.Delete(token); r.Error != nil {
+		if !r.RecordNotFound() {
+			return nil
+		}
+
+		return errors.New(r.Error.Error())
+	}
+
+	return nil
+}
+
+// GetTokenWithUser get token
+func (m *TokenManager) GetTokenWithUser(token string) (*Token, error) {
+
+	tk := &Token{}
+	db := m.GetDB()
+	if r := db.Where(&Token{Key:token}).Preload("User").First(tk); r.Error != nil {
+		if !r.RecordNotFound() {
+			return nil, nil
+		}
+
+		return nil, errors.New(r.Error.Error())
+	}
+
+	return tk, nil
+}

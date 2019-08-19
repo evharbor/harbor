@@ -53,7 +53,7 @@ func BasicAuthForRealm(db *gorm.DB, user interface{}, realm string) gin.HandlerF
 		}
 
 		nUser := CopyEmptyStruct(user)
-		err = authenticate(db, username, password, nUser)
+		err = Authenticate(db, username, password, nUser)
 		if err != nil {
 			// Credentials doesn't match, we return 401 and abort handlers chain.
 			ctx.Header("WWW-Authenticate", realm)

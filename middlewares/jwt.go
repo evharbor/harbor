@@ -34,7 +34,7 @@ func jwtAuthenticator(c *gin.Context) (interface{}, error) {
 
 	user := &models.UserProfile{}
 	db := database.GetDB("default")
-	err := authenticate(db, username, password, user)
+	err := Authenticate(db, username, password, user)
 	if err != nil {
 		return nil, err
 	}

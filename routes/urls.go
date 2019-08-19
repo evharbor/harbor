@@ -20,7 +20,7 @@ func Urls(ng *gin.Engine) {
 	ng.POST("/user/register/", ctls.UserRegister)
 	ng.POST("/api/v1/jwt-token/", jwtAuth.LoginHandler)
 	ng.POST("/api/v1/jwt-token-refresh/", jwtAuth.RefreshHandler)
-	v1 := ng.Group("/api/v1", jwtAuth.MiddlewareFunc())
+	v1 := ng.Group("/api/v1", jwtAuth.MiddlewareFunc(),middlewares.AuthTokenMiddlewareFunc())
 	{
 		v1.Any("/users/", ctls.NewUserController().Init().Dispatch)
 		v1.Any("/users/:id/", ctls.NewUserDetailController().Init().Dispatch)
@@ -30,6 +30,7 @@ func Urls(ng *gin.Engine) {
 		v1.Any("/dir/:bucketname/*dirpath", ctls.NewDirController().Init().Dispatch)
 		v1.Any("/metadata/:bucketname/*path", ctls.NewMetadataController().Init().Dispatch)
 		v1.Any("/move/:bucketname/*objpath", ctls.NewMoveController().Init().Dispatch)
+		v1.Any("/auth-token/", ctls.NewTokenController().Init().Dispatch)
 	}
 	obs := ng.Group("obs", jwtAuth.MiddlewareFunc())
 	{

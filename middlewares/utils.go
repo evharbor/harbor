@@ -32,7 +32,8 @@ func CopyEmptyStruct(obj interface{}) (newObj interface{}) {
 	return
 }
 
-func authenticate(db *gorm.DB, username, password string, user interface{}) error {
+// Authenticate auth
+func Authenticate(db *gorm.DB, username, password string, user interface{}) error {
 
 	iu, ok := user.(IBasicAuth)
 	if !ok {
