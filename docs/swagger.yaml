@@ -190,13 +190,6 @@ definitions:
     - password
     - username
     type: object
-  controllers.bucketDetailForm:
-    properties:
-      ids:
-        items:
-          type: string
-        type: array
-    type: object
   controllers.bucketDetailJSON:
     properties:
       bucket:
@@ -377,17 +370,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.TokenJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -421,17 +411,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/controllers.TokenJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       summary: 身份验证并返回一个token
       tags:
       - auth token
@@ -446,17 +433,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.TokenJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -486,22 +470,18 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.BucketListJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -527,17 +507,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/controllers.bucketPostJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.bucketPost400JSON'
-            type: object
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -567,13 +544,12 @@ paths:
         in: query
         name: rename
         type: string
-      - description: bucket id list,一次设置多个桶的权限时使用，命重名桶时无效
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.bucketDetailForm'
-          type: object
+      - description: bucket id array,一次设置多个桶的权限时使用，命重名桶时无效
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
       produces:
       - application/json
       responses:
@@ -581,22 +557,18 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.bucketPatchJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -607,20 +579,19 @@ paths:
     delete:
       consumes:
       - application/json
-      description: '#可以一次删除多个存储桶，其余存储桶id通过form ids传递。'
+      description: '#可以一次删除多个存储桶，其余存储桶id通过query参数ids传递。'
       parameters:
       - description: bucket id
         in: path
         name: id
         required: true
         type: integer
-      - description: bucket id list
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.bucketDetailForm'
-          type: object
+      - description: bucket id array
+        in: query
+        items:
+          type: string
+        name: ids
+        type: array
       produces:
       - application/json
       responses:
@@ -632,12 +603,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -661,22 +630,18 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.bucketDetailJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -710,12 +675,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -753,17 +716,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.DirListJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -792,17 +752,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.DirCreateJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.DirCreate400JSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -830,17 +787,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -867,17 +821,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -907,17 +858,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.ObjMetadataJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -958,17 +906,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.ObjMoveJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1002,12 +947,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1055,12 +998,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1097,17 +1038,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1166,17 +1104,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.objPostJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1206,17 +1141,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.UserListJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1244,17 +1176,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1283,17 +1212,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "403":
           description: Forbidden
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1317,17 +1243,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.UserDetailJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1361,17 +1284,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/controllers.UserDetailJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1417,22 +1337,18 @@ paths:
           description: Partial Content
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "416":
           description: Requested Range Not Satisfiable
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       security:
       - BasicAuth: []
       - ApiKeyAuth: []
@@ -1467,17 +1383,14 @@ paths:
           description: ok
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controllers.BaseJSON'
-            type: object
       tags:
       - Register 注册
 securityDefinitions:

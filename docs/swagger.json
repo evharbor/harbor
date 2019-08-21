@@ -43,21 +43,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.TokenJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -87,21 +84,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.TokenJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -141,21 +135,18 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.TokenJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -203,28 +194,24 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BucketListJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -266,21 +253,18 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.bucketPostJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.bucketPost400JSON"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -329,42 +313,37 @@
                         "in": "query"
                     },
                     {
-                        "description": "bucket id list,一次设置多个桶的权限时使用，命重名桶时无效",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "$ref": "#/definitions/controllers.bucketDetailForm"
-                        }
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "bucket id array,一次设置多个桶的权限时使用，命重名桶时无效",
+                        "name": "ids",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.bucketPatchJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -405,28 +384,24 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.bucketDetailJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -441,7 +416,7 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "#可以一次删除多个存储桶，其余存储桶id通过form ids传递。",
+                "description": "#可以一次删除多个存储桶，其余存储桶id通过query参数ids传递。",
                 "consumes": [
                     "application/json"
                 ],
@@ -461,14 +436,13 @@
                         "required": true
                     },
                     {
-                        "description": "bucket id list",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "$ref": "#/definitions/controllers.bucketDetailForm"
-                        }
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "bucket id array",
+                        "name": "ids",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -481,14 +455,12 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -549,21 +521,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.DirListJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -609,21 +578,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.DirCreateJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.DirCreate400JSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -675,14 +641,12 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -727,21 +691,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -785,21 +746,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -847,21 +805,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.ObjMetadataJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -921,21 +876,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.ObjMoveJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1001,14 +953,12 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1075,21 +1025,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.objPostJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1141,14 +1088,12 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1206,21 +1151,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1268,21 +1210,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.UserListJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1324,21 +1263,18 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1379,21 +1315,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.UserDetailJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1438,21 +1371,18 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1501,21 +1431,18 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.UserDetailJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1569,28 +1496,24 @@
                     "206": {
                         "description": "Partial Content",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "416": {
                         "description": "Requested Range Not Satisfiable",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1636,21 +1559,18 @@
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/controllers.BaseJSON"
                         }
                     }
@@ -1944,17 +1864,6 @@
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "controllers.bucketDetailForm": {
-            "type": "object",
-            "properties": {
-                "ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },

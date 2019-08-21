@@ -235,16 +235,21 @@ func (ctl *BucketDetailController) Init() ControllerInterface {
 	return ctl
 }
 
-type bucketDetailForm struct {
+type bucketIdsPramsStruct struct {
 	IDs []string `json:"ids" form:"ids" validate:"omitempty,"`
 }
 
-func (f *bucketDetailForm) isValid(ctx *gin.Context) error {
+func (f *bucketIdsPramsStruct) isValid(ctx *gin.Context) error {
 
-	if err := ctx.ShouldBind(&f); err != nil {
-		return err
+	ids := ctx.QueryArray("ids")
+	if len(ids) == 1 {
+		// 处理参数格式ids=a,b,c的情况
+		ids = strings.Split(ids[0], ",")
 	}
-	if id := ctx.Param("id"); id != "" {
+
+	f.IDs = ids
+
+	if id := ctx.Param("id"); id != "" && id != "0" {
 		f.IDs = append(f.IDs, id)
 	}
 
@@ -254,7 +259,7 @@ func (f *bucketDetailForm) isValid(ctx *gin.Context) error {
 	return nil
 }
 
-func (f *bucketDetailForm) validate() error {
+func (f *bucketIdsPramsStruct) validate() error {
 
 	var ids []string
 	for _, id := range f.IDs {
@@ -265,13 +270,16 @@ func (f *bucketDetailForm) validate() error {
 			ids = append(ids, id)
 		}
 	}
+	if len(ids) == 0 {
+		return errors.New("invalid id")
+	}
 	f.IDs = ids
 	return nil
 }
 
 type bucketDetail400JSON struct {
 	BaseJSON
-	Data *bucketDetailForm `json:"data"`
+	Data *bucketIdsPramsStruct `json:"data"`
 }
 
 type bucketDetailJSON struct {
@@ -326,12 +334,12 @@ func (ctl BucketDetailController) Get(ctx *gin.Context) {
 
 // Delete controller
 // @Summary 删除存储桶
-// @Description #可以一次删除多个存储桶，其余存储桶id通过form ids传递。
+// @Description #可以一次删除多个存储桶，其余存储桶id通过query参数ids传递。
 // @Tags Bucket 存储桶
 // @Accept  json
 // @Produce  json
 // @Param   id path int64 true "bucket id"
-// @Param   data body controllers.bucketDetailForm true "bucket id list"
+// @Param   ids query []string false "bucket id array"
 // @Success 204 {string} string
 // @Failure 400 {object} controllers.BaseJSON
 // @Failure 500 {object} controllers.BaseJSON
@@ -340,7 +348,7 @@ func (ctl BucketDetailController) Get(ctx *gin.Context) {
 // @Router /api/v1/buckets/{id}/ [delete]
 func (ctl BucketDetailController) Delete(ctx *gin.Context) {
 
-	form := bucketDetailForm{}
+	form := bucketIdsPramsStruct{}
 	if err := form.isValid(ctx); err != nil {
 		bj := BaseJSONResponse(400, err.Error())
 		ctx.JSON(400, &bucketDetail400JSON{
@@ -383,7 +391,7 @@ type bucketPatchJSON struct {
 // @Param   id path int64 true "bucket id"
 // @Param   public query bool false "设置对象公有或私有, true(公有)，false(私有)"
 // @Param   rename query string false "重命名桶,值为存储桶新名称"
-// @Param   data body controllers.bucketDetailForm true "bucket id list,一次设置多个桶的权限时使用，命重名桶时无效"
+// @Param   ids query []string false "bucket id array,一次设置多个桶的权限时使用，命重名桶时无效"
 // @Success 200 {object} controllers.bucketPatchJSON
 // @Failure 400 {object} controllers.BaseJSON
 // @Failure 404 {object} controllers.BaseJSON
@@ -470,7 +478,7 @@ func (ctl BucketDetailController) patchPublic(ctx *gin.Context, pub string) {
 		return
 	}
 
-	form := bucketDetailForm{}
+	form := bucketIdsPramsStruct{}
 	if err := form.isValid(ctx); err != nil {
 		ctx.JSON(400, BaseJSONResponse(400, err.Error()))
 		return

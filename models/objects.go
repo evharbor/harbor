@@ -156,7 +156,7 @@ type HarborObject struct {
 	FileOrDir        bool         `gorm:"column:fod;index:idx_fod_did;not null" json:"fod"`                         //True==文件，False==目录
 	ParentID         uint64       `gorm:"column:did;index:idx_fod_did;unique_index:udx_did_name;not null" json:"-"` //父节点id
 	Name             string       `gorm:"type:varchar(255);unique_index:udx_did_name;not null" json:"name"`         //文件名或目录名
-	Size             uint64       `gorm:"cloumn:si;not null" json:"si"`                                             //文件大小, 字节数
+	Size             uint64       `gorm:"column:si;not null" json:"si"`                                             //文件大小, 字节数
 	UploadTime       TypeJSONTime `gorm:"column:ult;not null" json:"ult"`                                           //文件的上传时间，或目录的创建时间
 	UpdateTime       TypeJSONTime `gorm:"column:upt;not null" json:"upt"`                                           //修改时间
 	DownloadCount    uint64       `gorm:"column:dlc;not null" json:"dlc"`                                           //该文件的下载次数，目录时dlc为0

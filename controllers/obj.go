@@ -262,7 +262,7 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 
 	hobj.SetSizeOnlyIncrease(uint64(offset + size))
 	hobj.UpdateModyfiedTime()
-	if err := manager.SaveObject(hobj); err != nil {
+	if err := manager.UpdateObjectSize(hobj); err != nil {
 		manager.RollbackTransaction()
 		ctx.JSON(500, BaseJSONResponse(500, "upload fialed:"+err.Error()))
 		return

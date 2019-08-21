@@ -362,6 +362,22 @@ func (m HarborObjectManager) SaveObject(obj *HarborObject) error {
 	return nil
 }
 
+// UpdateObjectSize update size of object to database
+func (m HarborObjectManager) UpdateObjectSize(obj *HarborObject) error {
+
+	db := m.GetDB()
+	if r := db.Where("id = ?", obj.ID).Updates(map[string]interface{}{
+		"si":  gorm.Expr("CASE WHEN (`si` < ?) THEN ? ELSE `si` END", obj.Size, obj.Size),
+		"upt": obj.UpdateTime,
+	}); r.Error != nil {
+		if r.RecordNotFound() {
+			return errors.New("failed to update object's metadata")
+		}
+		return errors.New("failed to update object's metadata")
+	}
+	return nil
+}
+
 // InsertObject create object to database
 func (m HarborObjectManager) InsertObject(obj *HarborObject) error {
 
@@ -774,7 +790,7 @@ func (m *TokenManager) GetTokenWithUser(token string) (*Token, error) {
 
 	tk := &Token{}
 	db := m.GetDB()
-	if r := db.Where(&Token{Key:token}).Preload("User").First(tk); r.Error != nil {
+	if r := db.Where(&Token{Key: token}).Preload("User").First(tk); r.Error != nil {
 		if !r.RecordNotFound() {
 			return nil, nil
 		}
