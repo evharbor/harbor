@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"harbor/models"
+	"harbor/utils/convert"
 	"harbor/utils/storages"
 	"net/http"
 	"net/url"
@@ -169,9 +170,9 @@ func (ctl DownloadController) totalFileResponse(ctx *gin.Context,
 
 	filesize := obj.Size
 	objkey := obj.GetObjKey(bucket)
-	fs := storages.NewFileStorage(objkey)
+	cho := storages.NewCephHarborObject(objkey, obj.Size)
 
-	stepFunc, err := fs.StepWriteFunc(0, int64(filesize-1))
+	stepFunc, err := cho.StepWriteFunc(0, filesize-1)
 	if err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, "error read object"))
 		return
@@ -200,7 +201,7 @@ func (ctl DownloadController) rangeFileResponse(ctx *gin.Context,
 
 	filesize := obj.Size
 	objkey := obj.GetObjKey(bucket)
-	fs := storages.NewFileStorage(objkey)
+	cho := storages.NewCephHarborObject(objkey, obj.Size)
 
 	start, end, err := ctl.parseHeaderRange(hRange)
 	if err != nil {
@@ -209,7 +210,7 @@ func (ctl DownloadController) rangeFileResponse(ctx *gin.Context,
 	}
 	// 读最后end个字节
 	if start < 0 && end > 0 {
-		offset = MaxInt(int64(filesize)-end, 0)
+		offset = convert.MaxInt(int64(filesize)-end, 0)
 		end = int64(filesize - 1)
 
 	} else {
@@ -217,11 +218,11 @@ func (ctl DownloadController) rangeFileResponse(ctx *gin.Context,
 		if end < 0 {
 			end = int64(filesize - 1)
 		} else {
-			end = MinInt(end, int64(filesize-1))
+			end = convert.MinInt(end, int64(filesize-1))
 		}
 	}
 
-	stepFunc, err := fs.StepWriteFunc(offset, end)
+	stepFunc, err := cho.StepWriteFunc(uint64(offset), uint64(end))
 	if err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, "error read object"))
 		return

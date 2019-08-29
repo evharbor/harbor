@@ -109,10 +109,11 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 	}
 
 	objkey := hobj.GetObjKey(bucket)
-	fs := storages.NewFileStorage(objkey)
-	filesize := strconv.FormatInt(fs.FileSize(), 10)
+	objSize := hobj.Size
+	cho := storages.NewCephHarborObject(objkey, objSize)
+	filesize := strconv.FormatUint(objSize, 10)
 	if size > 0 {
-		data, err := fs.Read(int64(offset), int32(size))
+		data, err := cho.Read(offset, uint(size))
 		if err != nil {
 			ctx.JSON(500, BaseJSONResponse(500, "error read object"))
 			return
@@ -127,7 +128,7 @@ func (ctl ObjController) Get(ctx *gin.Context) {
 		}
 		return
 	}
-	stepFunc, err := fs.StepWriteFunc(0, fs.FileSize()-1)
+	stepFunc, err := cho.StepWriteFunc(0, objSize-1)
 	if err != nil {
 		ctx.JSON(500, BaseJSONResponse(500, "error read object"))
 		return
@@ -230,7 +231,7 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 		oldSize := hobj.Size
 		oldTime := hobj.UpdateTime
 		objkey := hobj.GetObjKey(bucket)
-		fs := storages.NewFileStorage(objkey)
+		cho := storages.NewCephHarborObject(objkey, oldSize)
 
 		// modify metadata
 		hobj.Size = uint64(size)
@@ -240,7 +241,7 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 			return
 		}
 		// delete object data
-		if err := fs.Delete(); err != nil {
+		if err := cho.Delete(); err != nil {
 			hobj.Size = oldSize
 			hobj.UpdateTime = oldTime
 			manager.SaveObject(hobj)
@@ -270,8 +271,8 @@ func (ctl ObjController) Post(ctx *gin.Context) {
 
 	// storage object data
 	objkey := hobj.GetObjKey(bucket)
-	fs := storages.NewFileStorage(objkey)
-	err = fs.WriteFile(offset, chunk)
+	cho := storages.NewCephHarborObject(objkey, hobj.Size)
+	err = cho.WriteFile(offset, chunk)
 	if err != nil {
 		manager.RollbackTransaction()
 		ctx.JSON(500, BaseJSONResponse(500, "upload fialed:"+err.Error()))

@@ -50,7 +50,7 @@ func init() {
 // @in header
 // @name Authorization
 
-// @host 127.0.0.1:9000
+// @host 159.226.235.106:9999
 // @BasePath /
 func main() {
 
@@ -70,7 +70,7 @@ func main() {
 	app.Static("/static", "./static") // 设置静态资源
 	app.LoadHTMLGlob("views/**/*")    //加载模板
 
-	app.Run(":9000")
+	app.Run(":9999")
 }
 
 func index(ctx *gin.Context) {

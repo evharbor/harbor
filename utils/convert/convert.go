@@ -46,3 +46,39 @@ func ToUint(value interface{}) (val uint64, err error) {
 	val = reflect.ValueOf(value).Uint()
 	return
 }
+
+// MaxInt return the largest argument
+func MaxInt(a, b int64) int64 {
+
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// MaxUint return the largest argument
+func MaxUint(a, b uint64) uint64 {
+
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// MinInt return the smallest argument
+func MinInt(a, b int64) int64 {
+
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// MinUint return the smallest argument
+func MinUint(a, b uint64) uint64 {
+
+	if a < b {
+		return a
+	}
+	return b
+}

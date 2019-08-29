@@ -344,7 +344,7 @@ definitions:
       username:
         type: string
     type: object
-host: 127.0.0.1:9000
+host: 159.226.235.106:9999
 info:
   contact:
     email: helpdesk@cnic.cn

@@ -1,43 +1,23 @@
-package storages
+package filesystem
 
 import (
 	"errors"
-	"harbor/config"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 )
 
-var configs = config.GetConfigs()
-
 // FileStorage manage write or read file on local file system
 type FileStorage struct {
-	filename   string
-	uploadPath string
-}
-
-// NewFileStorage return a filestorage
-func NewFileStorage(filename string) *FileStorage {
-
-	// 目录路径不存在存在则创建
-	dirPath := filepath.Clean(getUploadPath())
-	if exist, _ := DirExists(dirPath); !exist {
-		os.MkdirAll(dirPath, os.ModeDir)
-	}
-	return &FileStorage{
-		filename:   filename,
-		uploadPath: dirPath,
-	}
+	Filename   string
+	UploadPath string
 }
 
 // GetFilename return file path name
 func (fs FileStorage) GetFilename() string {
 
-	if fs.uploadPath == "" {
-		fs.uploadPath = getUploadPath()
-	}
-	return filepath.Join(fs.uploadPath, fs.filename)
+	return filepath.Join(fs.UploadPath, fs.Filename)
 }
 
 // WriteFile write a file-like to a file
@@ -287,27 +267,4 @@ func GetCurrentPath() (string, error) {
 		return "", err
 	}
 	return path, nil
-}
-
-// DirExists 目录是否存在
-// return:
-// 		true and nil,文件夹存在
-//		false and nil, 不存在
-// 		error != nil ,则不确定是否存在
-func DirExists(path string) (bool, error) {
-	fi, err := os.Stat(path)
-	if err == nil {
-		if fi.Mode().IsDir() {
-			return true, nil
-		}
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-func getUploadPath() string {
-
-	return filepath.Join(configs.BaseDir, "upload")
 }

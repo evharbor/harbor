@@ -19,11 +19,21 @@ type DBConfig struct {
 	Charset  string `mapstructure:"charset"`
 }
 
+// CephConfig ceph rados configs
+type CephConfig struct {
+	ClusterName string `mapstructure:"cluster_name"`
+	Username    string `mapstructure:"username"`
+	ConfFile    string `mapstructure:"conf_file"`
+	KeyringFile string `mapstructure:"keyring_file"`
+	PoolName    string `mapstructure:"pool_name"`
+}
+
 // Config struct
 type Config struct {
 	Debug     bool       `mapstructure:"debug"`
 	SecretKey string     `mapstructure:"secret_key"`
 	Databases []DBConfig `mapstructure:"databases"` //database configs
+	CephRados CephConfig `mapstructure:"ceph_rados"`
 	BaseDir   string
 }
 
